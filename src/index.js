@@ -22,19 +22,32 @@ async function startBot() {
   try { ({ version } = await fetchLatestBaileysVersion()); } catch (error) { logger.warn({ err:error }, 'Could not fetch latest WhatsApp version'); }
   const sock = makeWASocket({ auth:state, logger, browser:Browsers.ubuntu(config.name), ...(version?{version}:{}), markOnlineOnConnect:false, syncFullHistory:false, generateHighQualityLinkPreview:false });
   let pairingRequested = false;
-  sock.ev.on('creds.update', saveCreds);
-  sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
-   if (connection === 'connecting' && !state.creds.registered && config.pairingCode && !pairingRequested) {
-    pairingRequested = true;
-    try { const code = await sock.requestPairingCode(config.ownerNumber); console.log(`\n╭───「 NYX BOT • PAREAMENTO 」───╮\n  Código: ${code.match(/.{1,4}/g)?.join('-') ?? code}\n  WhatsApp > Aparelhos conectados > Conectar com número\n╰──────────────────────────────╯\n`); }
-    catch (error) { pairingRequested = false; logger.error({err:error}, 'Failed to request pairing code'); }
+  const requestPairingCode = async () => {
+   if (state.creds.registered || !config.pairingCode || pairingRequested) return;
+   pairingRequested = true;
+   try {
+    const code = await sock.requestPairingCode(config.ownerNumber);
+    console.log(`\n╭───「 NYX BOT • PAREAMENTO 」───╮\n  Código: ${code.match(/.{1,4}/g)?.join('-') ?? code}\n  WhatsApp > Aparelhos conectados > Conectar com número\n╰──────────────────────────────╯\n`);
+   } catch (error) {
+    pairingRequested = false;
+    console.error('Não foi possível gerar o código de pareamento:', error?.message ?? error);
+    if (error?.stack) console.error(error.stack);
    }
+  };
+  console.log('Estado da autenticação:', state.creds.registered ? 'credenciais registradas' : 'aguardando novo pareamento');
+  sock.ev.on('creds.update', saveCreds);
+  // Fallback: solicitar o código após criar o socket, sem depender do evento "connecting".
+  if (!state.creds.registered && config.pairingCode) setTimeout(() => { void requestPairingCode(); }, 1000);
+  sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
+   if (connection === 'connecting') await requestPairingCode();
    if (connection === 'open') console.log(`✅ ${config.name} conectado ao WhatsApp.`);
    if (connection === 'close') {
     const statusCode = lastDisconnect?.error?.output?.statusCode;
     console.error('Conexão encerrada:', statusCode ?? 'código desconhecido');
+    const disconnectError = lastDisconnect?.error;
+    if (disconnectError?.message) console.error('Detalhe da desconexão:', disconnectError.message);
     if (statusCode === DisconnectReason.loggedOut) { console.error('Sessão desconectada pelo WhatsApp; será necessário parear novamente.'); return; }
-    clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { starting = false; startBot().catch(err => logger.error({err}, 'Reconnect failed')); }, 3000);
+    clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { starting = false; startBot().catch(err => console.error('Falha ao reconectar:', err?.stack ?? err)); }, 3000);
    }
   });
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
