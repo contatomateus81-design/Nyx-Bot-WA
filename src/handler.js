@@ -36,6 +36,13 @@ export async function handleMessage(sock, message) {
     reply: (content, mentions = []) => sock.sendMessage(message.key.remoteJid, { text: String(content), ...(mentions.length ? { mentions } : {}) }, { quoted: message }),
   };
 
+  // React to every recognized command before running it. A failed reaction must not block the command.
+  try {
+    await sock.sendMessage(message.key.remoteJid, { react: { text: '💜', key: message.key } });
+  } catch (error) {
+    console.warn('[command:reaction] Não foi possível reagir à mensagem:', error?.message ?? error);
+  }
+
   if (command.role === 'dono' && !isOwner) {
     return context.reply('🔒 Esse comando é exclusivo do dono.');
   }
