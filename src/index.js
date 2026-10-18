@@ -34,13 +34,15 @@ async function startBot() {
     syncFullHistory: false,
     generateHighQualityLinkPreview: false,
   });
+  let pairingRequested = false;
 
   sock.ev.on('creds.update', saveCreds);
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
     if (qr && !state.creds.registered && !config.pairingCode) {
       logger.info('QR login is disabled by configuration.');
     }
-    if (connection === 'connecting' && !state.creds.registered && config.pairingCode) {
+    if (connection === 'connecting' && !state.creds.registered && config.pairingCode && !pairingRequested) {
+      pairingRequested = true;
       try {
         const code = await sock.requestPairingCode(config.ownerNumber);
         console.log('\n╭───「 NYX BOT • PAREAMENTO 」───╮');
@@ -48,6 +50,7 @@ async function startBot() {
         console.log('  WhatsApp > Aparelhos conectados > Conectar com número');
         console.log('╰──────────────────────────────╯\n');
       } catch (error) {
+        pairingRequested = false;
         logger.error({ err: error }, 'Failed to request pairing code');
       }
     }
