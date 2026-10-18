@@ -147,7 +147,17 @@ async function startBot() {
   });
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
    for (const message of messages) {
-    if (!message.message) continue;
+    // Diagnostic: log event metadata even when Baileys has no decrypted message body.
+    console.log('[messages.upsert]', {
+     type,
+     fromMe: Boolean(message.key?.fromMe),
+     hasMessage: Boolean(message.message),
+     remoteJidType: message.key?.remoteJid?.endsWith('@g.us') ? 'group' : 'private-or-other',
+    });
+    if (!message.message) {
+     console.warn('[messages.upsert] Mensagem sem conteúdo descriptografado; ignorando por enquanto.');
+     continue;
+    }
     const text = message.message.conversation
      ?? message.message.extendedTextMessage?.text
      ?? message.message.imageMessage?.caption
