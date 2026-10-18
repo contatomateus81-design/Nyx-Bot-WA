@@ -93,7 +93,6 @@ registerCommand({
       `│ 🌀 Índice de caos: ${chaosIndex}%`,
       `│ 👑 Perigo nos grupos: nível ${groupDanger}/6`,
       '╰────────────────',
-      '_As estatísticas são aleatórias e servem só para a zoeira._ 💜',
     ].join('\n');
 
     if (picture) {
