@@ -17,7 +17,9 @@ export async function handleMessage(sock, message) {
     ?? message.message?.videoMessage?.caption;
   if (!text?.startsWith(config.prefix)) return;
 
-  const senderJid = message.key.participant ?? message.key.remoteJid ?? '';
+  const senderJid = message.key.fromMe
+    ? `${config.ownerNumber}@s.whatsapp.net`
+    : (message.key.participant ?? message.key.remoteJid ?? '');
   const senderNumber = senderJid.split('@')[0].split(':')[0].replace(/\D/g, '');
   const isOwner = Boolean(config.ownerNumber) && senderNumber === config.ownerNumber;
   const isGroup = (message.key.remoteJid ?? '').endsWith('@g.us');
