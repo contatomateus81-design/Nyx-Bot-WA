@@ -14,6 +14,7 @@ registerCommand({
 │ ${config.prefix}tempo — tempo ligado
 │ ${config.prefix}sobre — sobre o bot
 │ ${config.prefix}dono — contato do criador
+│ ${config.prefix}play nome ou link — baixar áudio
 │
 │ 👥 GRUPO (admin)
 │ ${config.prefix}infogrupo — informações
