@@ -10,7 +10,7 @@
   },
   "engines": { "node": ">=20.0.0" },
   "dependencies": {
-    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "@whiskeysockets/baileys": "6.7.24",
     "dotenv": "^16.4.7",
     "pino": "^9.6.0"
   }
