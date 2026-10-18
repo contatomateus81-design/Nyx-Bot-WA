@@ -80,6 +80,10 @@ function addStickerMetadata(webp, packName, publisher) {
   if (webp.toString('ascii', 0, 4) !== 'RIFF' || webp.toString('ascii', 8, 12) !== 'WEBP') {
     throw new Error('O FFmpeg não gerou um WebP válido.');
   }
+  // VP8X declares optional WebP chunks such as EXIF in its feature flags.
+  if (webp.toString('ascii', 12, 16) === 'VP8X' && webp.length > 20) {
+    webp[20] |= 0x08;
+  }
   const chunks = Buffer.concat([webp.subarray(12), exifChunk]);
   const riffHeader = Buffer.from(webp.subarray(0, 12));
   riffHeader.writeUInt32LE(chunks.length + 4, 4);
