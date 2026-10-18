@@ -8,7 +8,7 @@ export function getMentionedJids(message) {
 export function getTargetJid(message, args = []) {
  const mentioned = getMentionedJids(message); if (mentioned.length) return mentioned[0];
  const quoted = message.message?.extendedTextMessage?.contextInfo?.participant; if (quoted) return quoted;
- const number = (args[0] ?? '').replace(/\\D/g, ''); return number ? `${number}@s.whatsapp.net` : null;
+ const number = (args[0] ?? '').replace(/\D/g, ''); return number ? number + '@s.whatsapp.net' : null;
 }
 export async function getGroupContext(sock, message, senderJid) {
  const jid = message.key.remoteJid; if (!jid?.endsWith('@g.us')) throw new Error('Este comando só funciona em grupos.');
@@ -16,7 +16,7 @@ export async function getGroupContext(sock, message, senderJid) {
  const normalizeJid = (value = '') => String(value).split(':')[0].trim().toLowerCase();
  const phoneDigits = (value = '') => {
   const base = normalizeJid(value).split('@')[0];
-  return base.replace(/\\D/g, '');
+  return base.replace(/\D/g, '');
  };
  const matchesIdentity = (participant, identities) => {
   const participantIds = [participant?.id, participant?.lid, participant?.phoneNumber].filter(Boolean);
@@ -34,5 +34,5 @@ export async function getGroupContext(sock, message, senderJid) {
 }
 export function formatDuration(ms) {
  const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
- return [d && `${d}d`, h && `${h}h`, m && `${m}m`].filter(Boolean).join(' ') || '<1m';
+ return [d && d + 'd', h && h + 'h', m && m + 'm'].filter(Boolean).join(' ') || '<1m';
 }
