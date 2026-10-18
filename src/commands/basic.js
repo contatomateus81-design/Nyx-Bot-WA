@@ -55,7 +55,7 @@ registerCommand({
       'FN:Criador Oficial do Nyx Bot',
       'TEL;type=CELL;type=VOICE;waid=555481296959:+555481296959',
       'END:VCARD',
-    ].join('\\n');
+    ].join('\n');
     await sock.sendMessage(
       chatJid,
       { contacts: { displayName: 'Criador Oficial do Nyx Bot', contacts: [{ vcard }] } },
