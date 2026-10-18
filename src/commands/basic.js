@@ -24,8 +24,8 @@ registerCommand({
 │ ${config.prefix}link / revogar — convite
 │ ${config.prefix}nomegrupo / descricao
 │ ${config.prefix}fechargrupo / abrirgrupo
-│ ${config.prefix}boasvindas on|off
-│ ${config.prefix}antilink on|off
+│ ${config.prefix}boasvindas 1|0 (on|off)
+│ ${config.prefix}antilink 1|0 (on|off)
 │ ${config.prefix}nota adicionar|ver|listar|apagar
 │ ${config.prefix}aviso — advertir membro
 │
