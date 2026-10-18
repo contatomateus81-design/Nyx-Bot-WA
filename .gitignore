@@ -5,3 +5,4 @@ auth_info/
 data/
 *.log
 .DS_Store
+temp_audio/
