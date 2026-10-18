@@ -1,12 +1,14 @@
 import { registerCommand } from '../handler.js';
+import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
 
 registerCommand({
   name: 'menu',
   aliases: ['help', 'ajuda'],
   role: 'membro',
-  async execute({ reply }) {
-    await reply(`╭─「 ✦ ${config.name} ✦ 」
+  async execute({ sock, chatJid, message }) {
+    const menuImage = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
+    await sock.sendMessage(chatJid, { image: menuImage, caption: `╭─「 ✦ ${config.name} ✦ 」
 │ Prefixo: ${config.prefix}
 │
 │ ✨ GERAL
@@ -32,7 +34,7 @@ registerCommand({
 │ 🎲 DIVERSÃO
 │ ${config.prefix}escolher A | B
 │ ${config.prefix}bola8 pergunta
-╰──────────────────────`);
+╰──────────────────────` }, { quoted: message });
   },
 });
 
