@@ -12,7 +12,7 @@ async function adminContext(ctx) {
 
 registerCommand({ name: 'infogrupo', aliases: ['groupinfo'], role: 'membro', async execute(ctx) {
   const g = await getGroupContext(ctx.sock, ctx.message, ctx.senderJid);
-  await ctx.reply(`📋 *${g.metadata.subject}*\\n👥 Membros: ${g.members.length}\\n👑 Criador: ${g.metadata.owner?.split('@')[0] ?? 'indisponível'}`);
+  await ctx.reply(`📋 *${g.metadata.subject}*\n👥 Membros: ${g.members.length}\n👑 Criador: ${g.metadata.owner?.split('@')[0] ?? 'indisponível'}`);
 }});
 
 registerCommand({ name: 'totag', aliases: ['tagall', 'marcar'], role: 'admin', async execute(ctx) {
@@ -20,7 +20,7 @@ registerCommand({ name: 'totag', aliases: ['tagall', 'marcar'], role: 'admin', a
   if (!g.isSenderAdmin && !ctx.isOwner) throw new Error('Somente administradores.');
   const mentions = g.members.map((p) => p.id);
   const msg = ctx.args.join(' ') || 'Atenção, pessoal!';
-  await ctx.sock.sendMessage(g.jid, { text: `📢 ${msg}\\n${mentions.map((j) => `• @${j.split('@')[0]}`).join('\\n')}`, mentions }, { quoted: ctx.message });
+  await ctx.sock.sendMessage(g.jid, { text: `📢 ${msg}\n${mentions.map((j) => `• @${j.split('@')[0]}`).join('\n')}`, mentions }, { quoted: ctx.message });
 }});
 
 for (const [name, aliases, action, done] of [
@@ -109,7 +109,7 @@ registerCommand({ name: 'nota', aliases: ['note'], role: 'admin', async execute(
   const notes = await listNotes(g.jid);
   if (action === 'get' && key) return ctx.reply(notes[key] ?? 'Nota não encontrada.');
   if (action === 'del' && key) return ctx.reply(await deleteNote(g.jid, key) ? '🗑️ Nota removida.' : 'Nota não encontrada.');
-  if (action === 'list') return ctx.reply(Object.keys(notes).join('\\n') || 'Nenhuma nota salva.');
+  if (action === 'list') return ctx.reply(Object.keys(notes).join('\n') || 'Nenhuma nota salva.');
   return ctx.reply(`Uso: ${config.prefix}nota adicionar <nome> <texto> | ver <nome> | listar | apagar <nome>`);
 }});
 
