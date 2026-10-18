@@ -70,8 +70,8 @@ async function logIncomingMessage(sock, message) {
   timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
  }).format(date);
 
- console.log('\n' + (mediaType ? \`📎 *Mídia anexada: \${mediaType}*\n\` : '') +
-  \`> Nome/Grupo: \${chatName}\n> Número: +\${number}\n> Data: \${datePart}\n> Hora: \${timePart}\n> Mensagem\${text ? \`: \${text}\` : ': (sem texto)'}\n\`);
+ console.log('\n' + (mediaType ? '📎 *Mídia anexada: ' + mediaType + '*\n' : '') +
+  '> Nome/Grupo: ' + chatName + '\n> Número: +' + number + '\n> Data: ' + datePart + '\n> Hora: ' + timePart + '\n> Mensagem: ' + (text || '(sem texto)') + '\n');
 }
 
 async function startBot() {
