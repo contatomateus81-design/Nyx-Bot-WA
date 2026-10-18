@@ -81,6 +81,9 @@ registerCommand({
     }
 
     const number = jidNumber(targetJid);
+    const isBotAccountTarget = targetJid === sock.user?.id
+      || targetJid === sock.user?.lid
+      || Boolean(number && config.ownerNumber && number === config.ownerNumber);
     const isSelf = targetJid === senderJid
       || (message.key?.fromMe && (number === config.ownerNumber || targetJid === sock.user?.id));
     const name = isSelf
@@ -88,7 +91,7 @@ registerCommand({
       : (mentions.length ? 'Pessoa mencionada' : (message.message?.extendedTextMessage?.contextInfo?.pushName || 'Contato do WhatsApp'));
 
     const [picture, bio] = await Promise.all([
-      getPicture(sock, targetJid, isSelf),
+      getPicture(sock, targetJid, isBotAccountTarget),
       getBio(sock, targetJid),
     ]);
 
