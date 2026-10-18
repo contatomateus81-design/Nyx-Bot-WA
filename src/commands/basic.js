@@ -1,48 +1,5 @@
 import { registerCommand } from '../handler.js';
 import { config } from '../config.js';
-
-registerCommand({
-  name: 'menu',
-  aliases: ['help', 'ajuda'],
-  role: 'membro',
-  async execute({ reply, senderNumber }) {
-    await reply(
-      `╭─「 ✦ ${config.name} ✦ 」\n` +
-      `│ Prefixo: ${config.prefix}\n` +
-      `│ ${config.prefix}menu — mostrar comandos\n` +
-      `│ ${config.prefix}ping — testar resposta\n` +
-      `│ ${config.prefix}owner — informações do dono\n` +
-      `╰────────────────\n` +
-      `Olá, @${senderNumber}! 💜`
-    );
-  },
-});
-
-registerCommand({
-  name: 'ping',
-  role: 'membro',
-  async execute({ reply }) {
-    await reply('Pong! 🏓 Nyx está online.');
-  },
-});
-
-registerCommand({
-  name: 'owner',
-  aliases: ['dono'],
-  role: 'membro',
-  async execute({ reply }) {
-    await reply(config.ownerNumber
-      ? `👑 Dono do bot: +${config.ownerNumber}`
-      : 'O número do dono ainda não foi configurado.');
-  },
-});
-
-registerCommand({
-  name: 'say',
-  aliases: ['dizer'],
-  role: 'dono',
-  async execute({ reply, args }) {
-    if (!args.length) return reply(`Uso: ${config.prefix}say <mensagem>`);
-    await reply(args.join(' '));
-  },
-});
+registerCommand({name:'menu',aliases:['help','ajuda'],role:'membro',async execute({reply}){await reply(`╭─「 ✦ ${config.name} ✦ 」\n│ Prefixo: ${config.prefix}\n│ ${config.prefix}ping — testar resposta\n│ ${config.prefix}runtime — tempo ligado\n│ ${config.prefix}about — sobre o bot\n│ ${config.prefix}groupinfo — informações do grupo\n│ ${config.prefix}tagall — marcar membros (admin)\n│ ${config.prefix}kick / promote / demote — moderação (admin)\n│ ${config.prefix}link / revoke — convite (admin)\n│ ${config.prefix}subject / desc — editar grupo (admin)\n│ ${config.prefix}closegroup / opengroup — permissões (admin)\n│ ${config.prefix}welcome on|off — boas-vindas (admin)\n│ ${config.prefix}antilink on|off — anti-link (admin)\n│ ${config.prefix}note add|get|list|del — notas (admin)\n│ ${config.prefix}choose A | B — escolha aleatória\n│ ${config.prefix}8ball pergunta — bola 8\n│ ${config.prefix}owner — contato do dono\n╰──────────────────────`);}});
+registerCommand({name:'ping',role:'membro',async execute({reply}){await reply('Pong! 🏓 Nyx está online.');}});
+registerCommand({name:'owner',aliases:['dono'],role:'membro',async execute({reply}){await reply(config.ownerNumber?`👑 Dono do bot: +${config.ownerNumber}`:'O número do dono ainda não foi configurado.');}});
