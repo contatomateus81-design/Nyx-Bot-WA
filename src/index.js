@@ -87,15 +87,17 @@ async function startBot() {
    }
   });
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
-   if (type !== 'notify') return;
    for (const message of messages) {
     if (!message.message) continue;
-    // Allow commands sent by the linked owner account, but ignore its ordinary outgoing messages.
     const text = message.message.conversation
      ?? message.message.extendedTextMessage?.text
      ?? message.message.imageMessage?.caption
      ?? message.message.videoMessage?.caption;
-    if (message.key.fromMe && !text?.startsWith(config.prefix)) continue;
+    const ownerCommand = Boolean(message.key.fromMe && text?.startsWith(config.prefix));
+    // WhatsApp may report messages sent by the linked account as "append".
+    if (type !== 'notify' && !(type === 'append' && ownerCommand)) continue;
+    // Ignore the linked account's ordinary outgoing messages to prevent loops.
+    if (message.key.fromMe && !ownerCommand) continue;
     await handleGroupMessage(sock, message);
     await handleMessage(sock, message);
    }
