@@ -9,6 +9,7 @@ import { handleGroupMessage, handleParticipantsUpdate } from './events.js';
 import './commands/basic.js';
 import './commands/group.js';
 import './commands/fun.js';
+import './commands/play.js';
 import './commands/owner.js';
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
