@@ -77,8 +77,8 @@ registerCommand({ name: 'boasvindas', aliases: ['welcome'], role: 'admin', async
   if (!g.isSenderAdmin && !ctx.isOwner) throw new Error('Somente administradores.');
   const current = await getGroup(g.jid);
   const arg = (ctx.args[0] ?? '').toLowerCase();
-  const on = ['on', 'ligar', 'ativar', 'ativa'].includes(arg) ? true
-    : ['off', 'desligar', 'desativar', 'desativa'].includes(arg) ? false
+  const on = ['1', 'on', 'ligar', 'ativar', 'ativa'].includes(arg) ? true
+    : ['0', 'off', 'desligar', 'desativar', 'desativa'].includes(arg) ? false
     : !current.welcome;
   await updateGroup(g.jid, { welcome: on });
   await ctx.reply(`Boas-vindas ${on ? 'ativadas 💜' : 'desativadas'}.`);
@@ -89,8 +89,8 @@ registerCommand({ name: 'antilink', aliases: ['anti-link'], role: 'admin', async
   if (!g.isSenderAdmin && !ctx.isOwner) throw new Error('Somente administradores.');
   const current = await getGroup(g.jid);
   const arg = (ctx.args[0] ?? '').toLowerCase();
-  const on = ['on', 'ligar', 'ativar', 'ativa'].includes(arg) ? true
-    : ['off', 'desligar', 'desativar', 'desativa'].includes(arg) ? false
+  const on = ['1', 'on', 'ligar', 'ativar', 'ativa'].includes(arg) ? true
+    : ['0', 'off', 'desligar', 'desativar', 'desativa'].includes(arg) ? false
     : !current.antiLink;
   await updateGroup(g.jid, { antiLink: on });
   await ctx.reply(`Anti-link ${on ? 'ativado 🛡️' : 'desativado'}.`);
