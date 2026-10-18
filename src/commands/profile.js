@@ -18,17 +18,27 @@ function jidNumber(jid = '') {
   return value || null;
 }
 
-async function getPicture(sock, jid) {
-  try {
-    const url = await sock.profilePictureUrl(jid, 'image');
-    if (!url) return null;
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const data = Buffer.from(await response.arrayBuffer());
-    return data.length > 0 && data.length <= 8 * 1024 * 1024 ? data : null;
-  } catch {
-    return null;
+async function getPicture(sock, jid, isOwnProfile = false) {
+  // For the linked account, try Baileys' authenticated identity first; its
+  // canonical JID can differ from the configured phone-number JID.
+  const candidates = isOwnProfile
+    ? [sock.user?.id, jid, sock.user?.lid]
+    : [jid];
+  const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
+
+  for (const candidate of uniqueCandidates) {
+    try {
+      const url = await sock.profilePictureUrl(candidate, 'image');
+      if (!url) continue;
+      const response = await fetch(url);
+      if (!response.ok) continue;
+      const data = Buffer.from(await response.arrayBuffer());
+      if (data.length > 0 && data.length <= 8 * 1024 * 1024) return data;
+    } catch {
+      // Try the next identifier if WhatsApp/Baileys cannot resolve this one.
+    }
   }
+  return null;
 }
 
 async function getBio(sock, jid) {
@@ -64,15 +74,21 @@ registerCommand({
         : senderJid;
     }
 
+    const requestedOwnProfile = !mentions.length && !quotedParticipant
+      && typedNumber.length < 10 && Boolean(message.key?.fromMe);
+    if (requestedOwnProfile && sock.user?.id) {
+      targetJid = sock.user.id;
+    }
+
     const number = jidNumber(targetJid);
     const isSelf = targetJid === senderJid
-      || (message.key?.fromMe && number === config.ownerNumber);
+      || (message.key?.fromMe && (number === config.ownerNumber || targetJid === sock.user?.id));
     const name = isSelf
       ? (message.pushName || 'Yato')
       : (mentions.length ? 'Pessoa mencionada' : (message.message?.extendedTextMessage?.contextInfo?.pushName || 'Contato do WhatsApp'));
 
     const [picture, bio] = await Promise.all([
-      getPicture(sock, targetJid),
+      getPicture(sock, targetJid, isSelf),
       getBio(sock, targetJid),
     ]);
 
