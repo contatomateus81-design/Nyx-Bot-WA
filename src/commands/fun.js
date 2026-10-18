@@ -18,7 +18,7 @@ registerCommand({
   aliases: ['about'],
   role: 'membro',
   async execute({ reply }) {
-    await reply(`💜 *${config.name}*\\nBot modular em Node.js + Baileys.\\nPrefixo: ${config.prefix}`);
+    await reply(`💜 *${config.name}*\nBot modular em Node.js + Baileys.\nPrefixo: ${config.prefix}`);
   },
 });
 
