@@ -1,0 +1,19 @@
+{
+  "name": "nyx-bot-wa",
+  "version": "1.0.0",
+  "description": "Nyx Bot WhatsApp MD with pairing code and modular commands",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node --check src/index.js && node --check src/config.js && node --check src/handler.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "dotenv": "^16.4.7",
+    "pino": "^9.6.0"
+  }
+}
