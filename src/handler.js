@@ -31,7 +31,7 @@ export async function handleMessage(sock, message) {
   const context = {
     sock, message, args, senderJid, senderNumber, isOwner, isGroup,
     chatJid: message.key.remoteJid,
-    reply: (content) => sock.sendMessage(message.key.remoteJid, { text: String(content) }, { quoted: message }),
+    reply: (content, mentions = []) => sock.sendMessage(message.key.remoteJid, { text: String(content), ...(mentions.length ? { mentions } : {}) }, { quoted: message }),
   };
 
   if (command.role === 'dono' && !isOwner) {
