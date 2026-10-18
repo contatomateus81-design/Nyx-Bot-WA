@@ -12,6 +12,8 @@ const TEMP_DIR = resolve('temp_audio');
 const MAX_DURATION_SECONDS = 15 * 60;
 const MAX_FILE_BYTES = 16 * 1024 * 1024;
 const COMMAND_TIMEOUT_MS = 180_000;
+// One active request per sender; repeated commands do not start extra downloads.
+const activeRequests = new Set();
 
 function isPrivateIPv4(host) {
   const parts = host.split('.').map(Number);
@@ -95,12 +97,18 @@ registerCommand({
       return reply(`🎵 Uso: ${config.prefix}play nome da música\nOu envie um link público de uma plataforma compatível.`);
     }
 
-    await mkdir(TEMP_DIR, { recursive: true });
+    const requestKey = String(senderJid ?? '').split(':')[0];
+    if (activeRequests.has(requestKey)) {
+      return reply('⏳ Seu pedido anterior ainda está sendo processado. Aguarde o áudio ou a mensagem de erro antes de pedir outra música.');
+    }
+    activeRequests.add(requestKey);
+
     const id = randomUUID();
     const outputTemplate = join(TEMP_DIR, `${id}.%(ext)s`);
     let downloadedPath;
 
     try {
+      await mkdir(TEMP_DIR, { recursive: true });
       const isUrl = /^https?:\/\//i.test(query);
       const target = isUrl ? validateUrl(query) : `ytsearch1:${query}`;
       const { stdout: metadataOutput } = await execFileAsync(
@@ -178,6 +186,7 @@ registerCommand({
       } catch {
         // The temporary directory may not exist if setup failed.
       }
+      activeRequests.delete(requestKey);
     }
   }
 });
