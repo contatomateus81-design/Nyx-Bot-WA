@@ -1,5 +1,5 @@
-import { getGroup, getGroupContext } from './store.js';
-import { getText } from './utils.js';
+import { getGroup } from './store.js';
+import { getText, getGroupContext } from './utils.js';
 
 export async function handleGroupMessage(sock, message) {
  const jid = message.key.remoteJid;
@@ -10,19 +10,14 @@ export async function handleGroupMessage(sock, message) {
  if (!/(chat\.whatsapp\.com\/|https?:\/\/|www\.)/i.test(text)) return;
  try {
   const g = await getGroupContext(sock, message, message.key.participant ?? '');
-  if (g.isSenderAdmin || g.isOwner) return;
+  if (g.isSenderAdmin) return;
   await sock.sendMessage(jid, { delete: message.key });
   await sock.sendMessage(jid, { text: '🔗 Link removido pelas regras do grupo.' });
- } catch (error) {
-  console.error('[anti-link]', error.message);
- }
+ } catch (error) { console.error('[anti-link]', error.message); }
 }
-
 export async function handleParticipantsUpdate(sock, update) {
  if (!update.id?.endsWith('@g.us') || !Array.isArray(update.participants)) return;
  const settings = await getGroup(update.id);
  if (!settings.welcome || update.action !== 'add') return;
- for (const participant of update.participants) {
-  await sock.sendMessage(update.id, { text: `💜 Bem-vindo(a), @${participant.split('@')[0]}!`, mentions: [participant] });
- }
+ for (const participant of update.participants) await sock.sendMessage(update.id, { text: `💜 Bem-vindo(a), @${participant.split('@')[0]}!`, mentions: [participant] });
 }
