@@ -17,6 +17,7 @@ registerCommand({
 │ ${config.prefix}sobre — sobre o bot
 │ ${config.prefix}dono — contato do criador
 │ ${config.prefix}play nome ou link — baixar áudio
+│ ${config.prefix}fig — criar figurinha de imagem
 │
 │ 👥 GRUPO (admin)
 │ ${config.prefix}infogrupo — informações
