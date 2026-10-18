@@ -15,11 +15,13 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
 let starting = false;
 let pairingNumber;
+
 async function startBot() {
  if (starting) return;
  starting = true;
  try {
-  validateConfig(); await mkdir(config.sessionDir, { recursive: true });
+  validateConfig();
+  await mkdir(config.sessionDir, { recursive: true });
   const { state, saveCreds } = await useMultiFileAuthState(config.sessionDir);
   if (!state.creds.registered && config.pairingCode && !pairingNumber) {
    const rl = createInterface({ input: stdin, output: stdout });
@@ -34,8 +36,18 @@ async function startBot() {
   }
   let version;
   try { ({ version } = await fetchLatestBaileysVersion()); } catch (error) { logger.warn({ err:error }, 'Could not fetch latest WhatsApp version'); }
-  const sock = makeWASocket({ auth:state, logger, browser:Browsers.ubuntu(config.name), ...(version?{version}:{}), markOnlineOnConnect:false, syncFullHistory:false, generateHighQualityLinkPreview:false });
+  const sock = makeWASocket({
+   auth: state,
+   logger,
+   // Use a canonical browser identity; the bot's display name is not a browser name.
+   browser: Browsers.ubuntu('Chrome'),
+   ...(version ? { version } : {}),
+   markOnlineOnConnect: false,
+   syncFullHistory: false,
+   generateHighQualityLinkPreview: false
+  });
   let pairingRequested = false;
+  let pairingScheduled = false;
   let connectionClosed = false;
   const requestPairingCode = async () => {
    if (state.creds.registered || !config.pairingCode || pairingRequested || connectionClosed) return;
@@ -51,7 +63,8 @@ async function startBot() {
   console.log('Estado da autenticação:', state.creds.registered ? 'credenciais registradas' : 'aguardando novo pareamento');
   sock.ev.on('creds.update', saveCreds);
   sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
-   if (connection === 'connecting' && !state.creds.registered && config.pairingCode && !pairingRequested) {
+   if (connection === 'connecting' && !state.creds.registered && config.pairingCode && !pairingRequested && !pairingScheduled) {
+    pairingScheduled = true;
     // Give the WebSocket a moment to establish before requesting a pairing code.
     setTimeout(() => { void requestPairingCode(); }, 2500);
    }
@@ -62,8 +75,15 @@ async function startBot() {
     console.error('Conexão encerrada:', statusCode ?? 'código desconhecido');
     const disconnectError = lastDisconnect?.error;
     if (disconnectError?.message) console.error('Detalhe da desconexão:', disconnectError.message);
-    if (statusCode === DisconnectReason.loggedOut) { console.error('Sessão desconectada pelo WhatsApp; será necessário parear novamente.'); return; }
-    clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { starting = false; startBot().catch(err => console.error('Falha ao reconectar:', err?.stack ?? err)); }, 3000);
+    if (statusCode === DisconnectReason.loggedOut) {
+     console.error('Sessão desconectada pelo WhatsApp; será necessário parear novamente.');
+     return;
+    }
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(() => {
+     starting = false;
+     startBot().catch(err => console.error('Falha ao reconectar:', err?.stack ?? err));
+    }, 3000);
    }
   });
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
@@ -75,7 +95,13 @@ async function startBot() {
    }
   });
   sock.ev.on('group-participants.update', async (update) => { await handleParticipantsUpdate(sock, update); });
- } catch (error) { starting = false; throw error; }
+ } catch (error) {
+  starting = false;
+  throw error;
+ }
 }
 process.on('unhandledRejection', error => console.error('[unhandledRejection]', error));
-startBot().catch(error => { console.error('Não foi possível iniciar o Nyx Bot:', error.message); process.exitCode = 1; });
+startBot().catch(error => {
+ console.error('Não foi possível iniciar o Nyx Bot:', error.message);
+ process.exitCode = 1;
+});
