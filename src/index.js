@@ -89,7 +89,13 @@ async function startBot() {
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
    if (type !== 'notify') return;
    for (const message of messages) {
-    if (!message.message || message.key.fromMe) continue;
+    if (!message.message) continue;
+    // Allow commands sent by the linked owner account, but ignore its ordinary outgoing messages.
+    const text = message.message.conversation
+     ?? message.message.extendedTextMessage?.text
+     ?? message.message.imageMessage?.caption
+     ?? message.message.videoMessage?.caption;
+    if (message.key.fromMe && !text?.startsWith(config.prefix)) continue;
     await handleGroupMessage(sock, message);
     await handleMessage(sock, message);
    }
