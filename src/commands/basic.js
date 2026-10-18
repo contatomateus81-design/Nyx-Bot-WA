@@ -18,6 +18,7 @@ registerCommand({
 │ ${config.prefix}dono — contato do criador
 │ ${config.prefix}play nome ou link — baixar áudio
 │ ${config.prefix}fig — criar figurinha de imagem
+│ ${config.prefix}perfil [@pessoa] — ficha divertida
 │
 │ 👥 GRUPO (admin)
 │ ${config.prefix}infogrupo — informações
