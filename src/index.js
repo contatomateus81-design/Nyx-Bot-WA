@@ -17,6 +17,63 @@ let reconnectTimer;
 let starting = false;
 let pairingNumber;
 
+const groupNameCache = new Map();
+
+function getMessageText(message) {
+ const content = message.message ?? {};
+ return content.conversation
+  ?? content.extendedTextMessage?.text
+  ?? content.imageMessage?.caption
+  ?? content.videoMessage?.caption
+  ?? content.documentMessage?.caption
+  ?? content.documentWithCaptionMessage?.message?.documentMessage?.caption
+  ?? content.buttonsResponseMessage?.selectedDisplayText
+  ?? content.listResponseMessage?.title
+  ?? content.templateButtonReplyMessage?.selectedDisplayText
+  ?? '';
+}
+
+async function logIncomingMessage(sock, message) {
+ const remoteJid = message.key.remoteJid ?? '';
+ const isGroup = remoteJid.endsWith('@g.us');
+ const senderJid = isGroup ? (message.key.participant ?? '') : remoteJid;
+ const number = senderJid.split('@')[0].split(':')[0].replace(/\\D/g, '') || 'Desconhecido';
+ let chatName = message.pushName || 'Contato privado';
+
+ if (isGroup) {
+  chatName = groupNameCache.get(remoteJid) ?? remoteJid;
+  if (!groupNameCache.has(remoteJid)) {
+   try {
+    const metadata = await sock.groupMetadata(remoteJid);
+    chatName = metadata.subject || chatName;
+    groupNameCache.set(remoteJid, chatName);
+   } catch {
+    // Keep the group JID as a fallback if metadata is unavailable.
+   }
+  }
+ }
+
+ const content = message.message ?? {};
+ const mediaType = content.imageMessage ? 'Imagem'
+  : content.videoMessage ? 'Vídeo'
+  : content.audioMessage ? 'Áudio'
+  : content.documentMessage || content.documentWithCaptionMessage ? 'Documento'
+  : content.stickerMessage ? 'Figurinha'
+  : null;
+ const text = getMessageText(message).trim();
+ const timestamp = Number(message.messageTimestamp) || Math.floor(Date.now() / 1000);
+ const date = new Date(timestamp * 1000);
+ const datePart = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric'
+ }).format(date);
+ const timePart = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+ }).format(date);
+
+ console.log('\\n' + (mediaType ? `📎 *Mídia anexada: ${mediaType}*\\n` : '') +
+  `> Nome/Grupo: ${chatName}\\n> Número: +${number}\\n> Data: ${datePart}\\n> Hora: ${timePart}\\n> Mensagem${text ? `: ${text}` : ': (sem texto)'}\\n`);
+}
+
 async function startBot() {
  if (starting) return;
  starting = true;
@@ -99,6 +156,7 @@ async function startBot() {
     if (type !== 'notify' && !(type === 'append' && ownerCommand)) continue;
     // Ignore the linked account's ordinary outgoing messages to prevent loops.
     if (message.key.fromMe && !ownerCommand) continue;
+    await logIncomingMessage(sock, message);
     await handleGroupMessage(sock, message);
     await handleMessage(sock, message);
    }
