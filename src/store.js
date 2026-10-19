@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 const filePath = 'data/store.json';
 let cache;
 let writeQueue = Promise.resolve();
-const defaults = { groups: {}, users: {}, notes: {} };
+const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [] };
 async function load() {
   if (cache) return cache;
   await mkdir(dirname(filePath), { recursive: true });
@@ -23,3 +23,18 @@ export async function updateUser(jid, patch) { const user = await getUser(jid); 
 export async function listNotes(jid) { const data = await load(); return data.notes[jid] ?? {}; }
 export async function setNote(jid, key, value) { const data = await load(); data.notes[jid] ??= {}; data.notes[jid][key] = value; await persist(); }
 export async function deleteNote(jid, key) { const data = await load(); if (!data.notes[jid] || !(key in data.notes[jid])) return false; delete data.notes[jid][key]; await persist(); return true; }
+
+export async function getDelegatedOwners() {
+  const data = await load();
+  if (!Array.isArray(data.delegatedOwners)) data.delegatedOwners = [];
+  return [...data.delegatedOwners];
+}
+export async function addDelegatedOwner(jid) {
+  const data = await load();
+  if (!Array.isArray(data.delegatedOwners)) data.delegatedOwners = [];
+  if (data.delegatedOwners.includes(jid)) return { added: false, reason: 'exists', owners: [...data.delegatedOwners] };
+  if (data.delegatedOwners.length >= 6) return { added: false, reason: 'limit', owners: [...data.delegatedOwners] };
+  data.delegatedOwners.push(jid);
+  await persist();
+  return { added: true, owners: [...data.delegatedOwners] };
+}
