@@ -1,6 +1,6 @@
 import { registerCommand } from '../handler.js';
 import { config } from '../config.js';
-import { addDelegatedOwner } from '../store.js';
+import { addDelegatedOwner, removeDelegatedOwner } from '../store.js';
 import { getTargetJid } from '../utils.js';
 registerCommand({name:'say',aliases:['dizer'],role:'dono',async execute({reply,args}){if(!args.length)return reply(`Uso: ${config.prefix}say <mensagem>`);await reply(args.join(' '));}});
 registerCommand({name:'chatid',aliases:['idchat'],role:'dono',async execute({reply,chatJid}){await reply(`ID deste chat: ${chatJid}`);}});
@@ -30,5 +30,29 @@ registerCommand({
       return ctx.reply('⚠️ Limite atingido: você já tem 6 donos adicionais. Não adicionei mais ninguém.');
     }
     await ctx.reply(`👑 @${target.split('@')[0]} agora tem poderes de dono!\n\nPode usar comandos de dono, administrador e membro. Vagas utilizadas: ${result.owners.length}/6.`, [target]);
+  },
+});
+
+registerCommand({
+  name: 'deldono',
+  aliases: ['delowner', 'removerdono'],
+  role: 'dono',
+  async execute(ctx) {
+    if (!ctx.isOfficialOwner) {
+      return ctx.reply('🔒 Só o dono oficial do bot pode remover poderes de dono.');
+    }
+    const target = getTargetJid(ctx.message, ctx.args);
+    if (!target || !/@(?:s\.whatsapp\.net|lid)$/.test(target)) {
+      return ctx.reply(`Uso: ${config.prefix}deldono @pessoa, respondendo à mensagem dela, ou informando o número com DDI. Ex.: ${config.prefix}deldono 5511999999999`);
+    }
+    const targetNumber = target.split('@')[0].split(':')[0].replace(/\D/g, '');
+    if (targetNumber && targetNumber === config.ownerNumber) {
+      return ctx.reply('⛔ O dono oficial não pode remover o próprio cargo por este comando.');
+    }
+    const result = await removeDelegatedOwner(target);
+    if (!result.removed) {
+      return ctx.reply('ℹ️ Essa pessoa não está na lista de donos adicionais.');
+    }
+    await ctx.reply(`✅ Os poderes de dono de @${target.split('@')[0]} foram removidos. Ela continua podendo usar comandos de membro e comandos administrativos se for administradora do grupo.`, [target]);
   },
 });
