@@ -1,6 +1,6 @@
 import { registerCommand } from '../handler.js';
 import { config } from '../config.js';
-import { addDelegatedOwner, getDelegatedOwners } from '../store.js';
+import { addDelegatedOwner } from '../store.js';
 import { getTargetJid } from '../utils.js';
 registerCommand({name:'say',aliases:['dizer'],role:'dono',async execute({reply,args}){if(!args.length)return reply(`Uso: ${config.prefix}say <mensagem>`);await reply(args.join(' '));}});
 registerCommand({name:'chatid',aliases:['idchat'],role:'dono',async execute({reply,chatJid}){await reply(`ID deste chat: ${chatJid}`);}});
