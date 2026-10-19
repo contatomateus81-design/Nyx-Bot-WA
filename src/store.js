@@ -38,3 +38,20 @@ export async function addDelegatedOwner(jid) {
   await persist();
   return { added: true, owners: [...data.delegatedOwners] };
 }
+
+export async function removeDelegatedOwner(jid) {
+  const data = await load();
+  if (!Array.isArray(data.delegatedOwners)) data.delegatedOwners = [];
+  const normalizeJid = (value = '') => String(value).split(':')[0].trim().toLowerCase();
+  const digits = (value = '') => normalizeJid(value).split('@')[0].replace(/\D/g, '');
+  const target = normalizeJid(jid);
+  const targetNumber = digits(jid);
+  const index = data.delegatedOwners.findIndex((stored) => {
+    const normalized = normalizeJid(stored);
+    return normalized === target || (targetNumber.length >= 10 && digits(stored) === targetNumber);
+  });
+  if (index === -1) return { removed: false, owners: [...data.delegatedOwners] };
+  const [removed] = data.delegatedOwners.splice(index, 1);
+  await persist();
+  return { removed: true, removedJid: removed, owners: [...data.delegatedOwners] };
+}
