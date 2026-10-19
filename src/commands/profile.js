@@ -1,6 +1,7 @@
 import { registerCommand } from '../handler.js';
 import { config } from '../config.js';
 import { getMentionedJids } from '../utils.js';
+import { readFile } from 'node:fs/promises';
 
 const pickInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const stars = (n) => '★'.repeat(n) + '☆'.repeat(6 - n);
@@ -39,6 +40,15 @@ async function getPicture(sock, jid, isOwnProfile = false) {
     }
   }
   return null;
+}
+
+async function getFallbackPicture() {
+  try {
+    return await readFile(new URL('../../mídia/nopic.jpg', import.meta.url));
+  } catch (error) {
+    console.error('[perfil] Não foi possível carregar mídia/nopic.jpg:', error.message);
+    return null;
+  }
 }
 
 async function getBio(sock, jid) {
@@ -114,8 +124,9 @@ registerCommand({
       '╰────────────────',
     ].join('\n');
 
-    if (picture) {
-      await sock.sendMessage(chatJid, { image: picture, caption }, { quoted: message });
+    const image = picture ?? await getFallbackPicture();
+    if (image) {
+      await sock.sendMessage(chatJid, { image, caption }, { quoted: message });
     } else {
       await sock.sendMessage(chatJid, { text: '🖼️ Foto de perfil indisponível; enviando a ficha em texto.\n\n' + caption }, { quoted: message });
     }
