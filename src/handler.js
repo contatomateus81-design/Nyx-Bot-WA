@@ -50,6 +50,19 @@ export async function handleMessage(sock, message) {
     await command.execute(context);
   } catch (error) {
     console.error(`[command:${command.name}]`, error);
+    const reason = String(error?.message ?? '');
+    if (/^Somente administradores(?: podem usar este comando)?\.?$/.test(reason) || reason === 'Somente administradores.') {
+      await context.reply('🔒 Permissão negada! Este comando é exclusivo dos administradores do grupo (ou do dono do bot).');
+      return;
+    }
+    if (reason === 'Preciso ser administradora do grupo para fazer isso.') {
+      await context.reply('🤖 Preciso ser administradora deste grupo para executar essa ação.');
+      return;
+    }
+    if (reason === 'Este comando só funciona em grupos.') {
+      await context.reply('ℹ️ Este comando só pode ser usado em grupos.');
+      return;
+    }
     await context.reply('⚠️ Ocorreu um erro ao executar esse comando.');
   }
 }
