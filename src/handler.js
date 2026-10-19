@@ -1,4 +1,5 @@
 import { config } from './config.js';
+import { getDelegatedOwners } from './store.js';
 
 const commands = new Map();
 
@@ -21,7 +22,15 @@ export async function handleMessage(sock, message) {
     ? `${config.ownerNumber}@s.whatsapp.net`
     : (message.key.participant ?? message.key.remoteJid ?? '');
   const senderNumber = senderJid.split('@')[0].split(':')[0].replace(/\D/g, '');
-  const isOwner = Boolean(config.ownerNumber) && senderNumber === config.ownerNumber;
+  const isOfficialOwner = Boolean(config.ownerNumber) && senderNumber === config.ownerNumber;
+  const delegatedOwners = await getDelegatedOwners();
+  const normalizeJid = (jid = '') => String(jid).split(':')[0].trim().toLowerCase();
+  const isDelegatedOwner = delegatedOwners.some((jid) => {
+    const normalized = normalizeJid(jid);
+    const storedNumber = normalized.split('@')[0].replace(/\D/g, '');
+    return normalized === normalizeJid(senderJid) || (storedNumber.length >= 10 && storedNumber === senderNumber);
+  });
+  const isOwner = isOfficialOwner || isDelegatedOwner;
   const isGroup = (message.key.remoteJid ?? '').endsWith('@g.us');
   const args = text.slice(config.prefix.length).trim().split(/\s+/);
   const name = (args.shift() ?? '').toLowerCase();
@@ -31,7 +40,7 @@ export async function handleMessage(sock, message) {
   if (!command) return;
 
   const context = {
-    sock, message, args, senderJid, senderNumber, isOwner, isGroup,
+    sock, message, args, senderJid, senderNumber, isOwner, isOfficialOwner, isGroup,
     chatJid: message.key.remoteJid,
     reply: (content, mentions = []) => sock.sendMessage(message.key.remoteJid, { text: String(content), ...(mentions.length ? { mentions } : {}) }, { quoted: message }),
   };
