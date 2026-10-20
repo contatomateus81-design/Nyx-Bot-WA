@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { registerCommand } from '../handler.js';
+import { config } from '../config.js';
 
 const MAX_TEXT_LENGTH = 600;
 const PROCESS_TIMEOUT_MS = 45_000;
