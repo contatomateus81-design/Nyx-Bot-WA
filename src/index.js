@@ -13,6 +13,7 @@ import './commands/play.js';
 import './commands/sticker.js';
 import './commands/owner.js';
 import './commands/profile.js';
+import './commands/tts.js';
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
