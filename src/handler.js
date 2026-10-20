@@ -3,6 +3,10 @@ import { getDelegatedOwners } from './store.js';
 
 const commands = new Map();
 
+export function getRegisteredCommandCount() {
+  return new Set(commands.values()).size;
+}
+
 export function registerCommand(command) {
   if (!command?.name || typeof command.execute !== 'function') {
     throw new TypeError('Comando inválido: informe name e execute().');
