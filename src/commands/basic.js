@@ -18,6 +18,7 @@ registerCommand({
 │ ${config.prefix}dono — contato do criador
 │ ${config.prefix}play nome ou link — baixar áudio
 │ ${config.prefix}tts texto — falar em áudio (TTS local)
+│ ${config.prefix}status — diagnóstico do bot
 │ ${config.prefix}fig — criar figurinha de imagem
 │ ${config.prefix}perfil [@pessoa] — ficha divertida
 │
