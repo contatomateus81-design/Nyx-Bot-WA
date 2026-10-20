@@ -1,4 +1,4 @@
-import { registerCommand } from '../handler.js';
+import { registerCommand, getRegisteredCommandCount } from '../handler.js';
 import { getDelegatedOwners } from '../store.js';
 import { config } from '../config.js';
 
