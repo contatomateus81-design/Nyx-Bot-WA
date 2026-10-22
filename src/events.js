@@ -2,6 +2,9 @@ import { getGroup } from './store.js';
 import { getText, getGroupContext } from './utils.js';
 import { renderWelcomeCard } from './welcome/render.js';
 
+// Retained for compatibility with the contact-cache listeners in index.js.
+export function rememberContact() {}
+
 const WELCOME_TEXT = '💜 𝕭𝖊𝖒 𝖛𝖎𝖓𝖉𝖔, 𝖓𝖔𝖛𝖔 𝖎𝖓𝖙𝖊𝖌𝖗𝖆𝖓𝖙𝖊 💜';
 
 async function resolveParticipant(sock, jid) {
