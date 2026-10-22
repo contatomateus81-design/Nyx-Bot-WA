@@ -69,19 +69,17 @@ registerCommand({
   role: 'membro',
   async execute({ sock, reply }) {
     const memory = process.memoryUsage();
-    const [delegatedOwners, ffmpegAvailable, ytDlpAvailable, piperStatus] = await Promise.all([
+    const [delegatedOwners, ffmpegAvailable, piperStatus] = await Promise.all([
       getDelegatedOwners(),
       checkBinary(process.env.FFMPEG_BIN?.trim() || 'ffmpeg', ['-version']),
-      checkBinary('yt-dlp', ['--version']),
       checkPiper(),
     ]);
 
     const connectionStatus = getConnectionStatus(sock);
     const toolsStatus = [
       `FFmpeg: ${ffmpegAvailable ? '🟢 Disponível' : '🔴 Indisponível'}`,
-      `yt-dlp: ${ytDlpAvailable ? '🟢 Disponível' : '🔴 Indisponível'}`,
       `Piper/TTS: ${piperStatus}`,
-    ].join('\n│ ');
+    ].join('\\n│ ');
 
     await reply(
       `╭───「 💜 ${config.name.toUpperCase()} • STATUS 」───╮
