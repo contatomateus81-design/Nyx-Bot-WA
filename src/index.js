@@ -160,7 +160,8 @@ async function startBot() {
      remoteJidType: message.key?.remoteJid?.endsWith('@g.us') ? 'group' : 'private-or-other',
     });
     if (message.key?.participant && message.pushName) rememberContact(message.key.participant, message.pushName);
-    else if (message.key?.remoteJid && !message.key.remoteJid.endsWith('@g.us') && message.pushName) rememberContact(message.key.remoteJid, message.pushName);\n    if (!message.message) {
+    else if (message.key?.remoteJid && !message.key.remoteJid.endsWith('@g.us') && message.pushName) rememberContact(message.key.remoteJid, message.pushName);
+    if (!message.message) {
      console.warn('[messages.upsert] Mensagem sem conteúdo descriptografado; ignorando por enquanto.');
      continue;
     }
