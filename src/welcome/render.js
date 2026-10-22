@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { existsSync } from 'node:fs';
 import { createCanvas, loadImage } from '@napi-rs/canvas';
-import template from './template.json' with { type: 'json' };
+const template = JSON.parse(readFileSync(new URL('./template.json', import.meta.url), 'utf8'));
 
 const clampText = (value, max = 48) => {
   const text = String(value ?? '').replace(/[\\r\\n]+/g, ' ').trim();
