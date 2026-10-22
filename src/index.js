@@ -5,7 +5,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { config, validateConfig } from './config.js';
 import { handleMessage } from './handler.js';
-import { handleGroupMessage, handleParticipantsUpdate } from './events.js';
+import { handleGroupMessage, handleParticipantsUpdate, rememberContact } from './events.js';
 import './commands/basic.js';
 import './commands/group.js';
 import './commands/fun.js';
@@ -123,7 +123,7 @@ async function startBot() {
    }
   };
   console.log('Estado da autenticação:', state.creds.registered ? 'credenciais registradas' : 'aguardando novo pareamento');
-  sock.ev.on('creds.update', saveCreds);
+  sock.ev.on('creds.update', saveCreds);\n  sock.ev.on('contacts.upsert', (contacts) => { for (const contact of contacts ?? []) rememberContact(contact.id, contact.notify || contact.name || contact.verifiedName); });\n  sock.ev.on('contacts.update', (contacts) => { for (const contact of contacts ?? []) rememberContact(contact.id, contact.notify || contact.name || contact.verifiedName); });
   sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
    if (connection === 'connecting' && !state.creds.registered && config.pairingCode && !pairingRequested && !pairingScheduled) {
     pairingScheduled = true;
@@ -157,7 +157,7 @@ async function startBot() {
      hasMessage: Boolean(message.message),
      remoteJidType: message.key?.remoteJid?.endsWith('@g.us') ? 'group' : 'private-or-other',
     });
-    if (!message.message) {
+    if (message.key?.participant && message.pushName) rememberContact(message.key.participant, message.pushName);\n    else if (message.key?.remoteJid && !message.key.remoteJid.endsWith('@g.us') && message.pushName) rememberContact(message.key.remoteJid, message.pushName);\n    if (!message.message) {
      console.warn('[messages.upsert] Mensagem sem conteúdo descriptografado; ignorando por enquanto.');
      continue;
     }
