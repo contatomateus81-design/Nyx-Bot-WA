@@ -41,7 +41,11 @@ export async function handleMessage(sock, message) {
   if (!name) return;
 
   const command = commands.get(name);
-  if (!command) return;
+  if (!command) {
+    return sock.sendMessage(message.key.remoteJid, {
+      text: `❌ Este comando não existe.\n📋 Por favor, utilize ${config.prefix}menu para ver a lista de comandos disponíveis.`,
+    }, { quoted: message });
+  }
 
   const context = {
     sock, message, args, senderJid, senderNumber, isOwner, isOfficialOwner, isGroup,
