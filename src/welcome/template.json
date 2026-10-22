@@ -1,0 +1,32 @@
+{
+  "width": 1080,
+  "height": 1080,
+  "colors": {
+    "background": "#100A20",
+    "purple": "#A855F7",
+    "lavender": "#D8B4FE",
+    "white": "#FFFFFF",
+    "muted": "#B9ADC9",
+    "panel": "#1B1230"
+  },
+  "avatar": {
+    "x": 540,
+    "y": 330,
+    "radius": 142
+  },
+  "text": {
+    "titleY": 145,
+    "nameY": 570,
+    "phoneY": 650,
+    "mentionY": 720,
+    "idY": 785,
+    "footerY": 1000
+  },
+  "fonts": {
+    "title": "800 48px sans-serif",
+    "name": "700 54px sans-serif",
+    "detail": "400 32px sans-serif",
+    "footer": "600 22px sans-serif"
+  },
+  "backgroundFile": "mídia/welcome-bg.png"
+}
