@@ -53,18 +53,15 @@ export async function handleParticipantsUpdate(sock, update) {
   const member = members.find(item => [item.id, item.lid, item.phoneNumber].filter(Boolean).some(id => normalizeJid(id) === normalized)) ?? {};
   const number = participantNumber(participant, member);
   const name = findContactName(sock, participant, member);
-  const mention = number ? \`@\${number}\` : \`@\${String(participant).split('@')[0]}\`;
-  const details = { name, phone: number ? \`+\${number}\` : 'Indisponível', mention, id: participant || 'Indisponível' };
+  const mention = '@' + (number || String(participant).split('@')[0]);
+  const details = { name, phone: number ? '+' + number : 'Indisponível', mention, id: participant || 'Indisponível' };
   try {
    const image = await renderWelcomeCard(sock, participant, details);
-   await sock.sendMessage(update.id, {
-    image,
-    caption: \`💜 Bem-vindo(a), \${mention}!\nQue bom ter você por aqui.\n\n📱 Número: \${details.phone}\n🆔 ID: \${details.id}\`,
-    mentions: [participant],
-   });
+   const caption = '💜 Bem-vindo(a), ' + mention + '!\nQue bom ter você por aqui.\n\n📱 Número: ' + details.phone + '\n🆔 ID: ' + details.id;
+   await sock.sendMessage(update.id, { image, caption, mentions: [participant] });
   } catch (error) {
    console.error('[welcome] Não foi possível gerar a imagem:', error.message);
-   await sock.sendMessage(update.id, { text: \`💜 Bem-vindo(a), \${mention}!\n📱 Número: \${details.phone}\n🆔 ID: \${details.id}\`, mentions: [participant] });
+   await sock.sendMessage(update.id, { text: '💜 Bem-vindo(a), ' + mention + '!\n📱 Número: ' + details.phone + '\n🆔 ID: ' + details.id, mentions: [participant] });
   }
  }
 }
