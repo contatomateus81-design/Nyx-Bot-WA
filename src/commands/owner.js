@@ -1,4 +1,5 @@
-import { registerCommand } from '../handler.js';
+import { registerCommand, runCommandForTest } from '../handler.js';
+import { triggerWelcomeTest } from '../events.js';
 import { config } from '../config.js';
 import { addDelegatedOwner, removeDelegatedOwner } from '../store.js';
 import { getTargetJid } from '../utils.js';
@@ -54,5 +55,38 @@ registerCommand({
       return ctx.reply('ℹ️ Essa pessoa não está na lista de donos adicionais.');
     }
     await ctx.reply(`✅ Os poderes de dono de @${target.split('@')[0]} foram removidos. Ela continua podendo usar comandos de membro e comandos administrativos se for administradora do grupo.`, [target]);
+  },
+});
+
+
+registerCommand({
+  name: 'test',
+  aliases: ['triger', 'trigger'],
+  role: 'dono',
+  async execute(ctx) {
+    const [rawTarget, ...rest] = ctx.args;
+    const target = (rawTarget ?? '').toLowerCase();
+    if (!target) {
+      return ctx.reply(
+        `🧪 Uso: ${config.prefix}test <evento ou comando> [argumentos]\\n\\n` +
+        `Eventos: welcome, bemvindo, boasvindas, group-join\\n` +
+        `Exemplos: ${config.prefix}test welcome\\n${config.prefix}test ping\\n\\n` +
+        'Atenção: ao testar um comando normal, ele executa a ação real desse comando.'
+      );
+    }
+
+    if (['welcome', 'bemvindo', 'bem-vindo', 'boasvindas', 'group-join', 'participant-add', 'add'].includes(target)) {
+      if (!ctx.isGroup) return ctx.reply('ℹ️ O teste de boas-vindas só funciona dentro de um grupo.');
+      await triggerWelcomeTest(ctx.sock, ctx.chatJid, ctx.senderJid);
+      return;
+    }
+
+    const result = await runCommandForTest(ctx, target, rest);
+    if (!result.found) {
+      return ctx.reply(`❌ Não encontrei o evento ou comando "${target}". Use ${config.prefix}test para ver exemplos.`);
+    }
+    if (!result.blocked) {
+      await ctx.reply(`✅ Teste de "${target}" executado.`);
+    }
   },
 });
