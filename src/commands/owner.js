@@ -68,9 +68,9 @@ registerCommand({
     const target = (rawTarget ?? '').toLowerCase();
     if (!target) {
       return ctx.reply(
-        `🧪 Uso: ${config.prefix}test <evento ou comando> [argumentos]\\n\\n` +
-        `Eventos: welcome, bemvindo, boasvindas, group-join\\n` +
-        `Exemplos: ${config.prefix}test welcome\\n${config.prefix}test ping\\n\\n` +
+        `🧪 Uso: ${config.prefix}test <evento ou comando> [argumentos]\n\n` +
+        `Eventos: welcome, bemvindo, boasvindas, group-join\n` +
+        `Exemplos: ${config.prefix}test welcome\n${config.prefix}test ping\n\n` +
         'Atenção: ao testar um comando normal, ele executa a ação real desse comando.'
       );
     }
