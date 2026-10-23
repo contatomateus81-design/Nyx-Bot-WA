@@ -70,3 +70,37 @@ registerCommand({
     );
   },
 });
+
+
+registerCommand({
+  name: 'sobre',
+  aliases: ['about', 'infobot'],
+  role: 'membro',
+  async execute({ sock, chatJid, message, reply }) {
+    const about = `╭─「 💜 ${config.name} 」
+│ Sua assistente para WhatsApp
+│
+│ ✨ O QUE EU FAÇO
+│ • Comandos úteis e divertidos
+│ • Ferramentas para grupos
+│ • Figurinhas, áudio e texto para voz
+│ • Perfil divertido e boas-vindas
+│
+│ 🌐 SITE OFICIAL
+│ https://nyx-bot-creator.vercel.app/
+│
+│ 💡 Use ${config.prefix}menu para ver
+│ os comandos disponíveis.
+╰──────────────────────`;
+
+    try {
+      const background = await readFile(new URL('../../mídias/background.png', import.meta.url));
+      await sock.sendMessage(chatJid, {
+        image: background,
+        caption: about,
+      }, { quoted: message });
+    } catch {
+      await reply(about);
+    }
+  },
+});
