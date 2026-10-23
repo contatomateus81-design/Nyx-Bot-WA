@@ -15,6 +15,20 @@ export function registerCommand(command) {
   for (const alias of command.aliases ?? []) commands.set(alias.toLowerCase(), command);
 }
 
+export async function runCommandForTest(context, name, args = []) {
+  const command = commands.get(String(name ?? '').toLowerCase());
+  if (!command) return { found: false };
+  if (['test', 'triger', 'trigger'].includes(command.name.toLowerCase())) {
+    throw new Error('O comando de teste não pode testar a si mesmo.');
+  }
+  if (command.role === 'dono' && !context.isOwner) {
+    await context.reply('🔒 Esse comando é exclusivo do dono.');
+    return { found: true, blocked: true };
+  }
+  await command.execute({ ...context, args });
+  return { found: true };
+}
+
 export async function handleMessage(sock, message) {
   const text = message.message?.conversation
     ?? message.message?.extendedTextMessage?.text
