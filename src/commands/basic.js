@@ -94,7 +94,7 @@ registerCommand({
 ╰──────────────────────`;
 
     try {
-      const background = await readFile(new URL('../../mídias/background.png', import.meta.url));
+      const background = await readFile(new URL('../../mídias/nyx-background.jpg', import.meta.url));
       await sock.sendMessage(chatJid, {
         image: background,
         caption: about,
