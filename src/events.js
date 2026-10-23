@@ -51,13 +51,6 @@ export async function handleParticipantsUpdate(sock, update) {
  if (!settings.welcome || update.action !== 'add') return;
 
  for (const participant of update.participants) {
-  const resolvedJid = await resolveParticipant(sock, participant);
-  try {
-   const image = await renderWelcomeCard(sock, resolvedJid);
-   await sock.sendMessage(update.id, { image, caption: WELCOME_TEXT });
-  } catch (error) {
-   console.error('[welcome] Não foi possível gerar a imagem:', error.message);
-   await sock.sendMessage(update.id, { text: WELCOME_TEXT });
-  }
+  await triggerWelcomeTest(sock, update.id, participant);
  }
 }
