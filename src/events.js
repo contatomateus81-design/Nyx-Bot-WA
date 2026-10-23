@@ -6,16 +6,27 @@ import { renderWelcomeCard } from './welcome/render.js';
 export function rememberContact() {}
 
 const WELCOME_TEXT = '💜 𝕭𝖊𝖒 𝖛𝖎𝖓𝖉𝖔, 𝖓𝖔𝖛𝖔 𝖎𝖓𝖙𝖊𝖌𝖗𝖆𝖓𝖙𝖊 💜';
+const WELCOME_MESSAGES = [
+ 'chegou mais uma pessoa pra nossa família! Fica à vontade 💜',
+ 'seja muito bem-vindo(a)! Esperamos que curta o grupo ✨',
+ 'olha quem chegou! Puxa uma cadeira e aproveita o papo 😺',
+ 'bem-vindo(a) ao grupo! Que venham boas conversas 🌙',
+ 'tem gente nova na área! Recebam com carinho 💜',
+];
 
 export async function triggerWelcomeTest(sock, chatJid, participantJid) {
  if (!chatJid?.endsWith('@g.us')) throw new Error('Este teste de evento só funciona em grupos.');
  const resolvedJid = await resolveParticipant(sock, participantJid);
+ const mentionJid = resolvedJid || participantJid;
+ const mention = String(mentionJid).split('@')[0];
+ const greeting = WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
+ const caption = '@' + mention + ', ' + greeting;
  try {
   const image = await renderWelcomeCard(sock, resolvedJid);
-  await sock.sendMessage(chatJid, { image, caption: WELCOME_TEXT });
+  await sock.sendMessage(chatJid, { image, caption, mentions: [mentionJid] });
  } catch (error) {
-  console.error('[welcome:test] Não foi possível gerar a imagem:', error.message);
-  await sock.sendMessage(chatJid, { text: WELCOME_TEXT });
+  console.error('[welcome] Não foi possível gerar a imagem:', error.message);
+  await sock.sendMessage(chatJid, { text: caption, mentions: [mentionJid] });
  }
 }
 
