@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 
 const template = JSON.parse(readFileSync(new URL('./template.json', import.meta.url), 'utf8'));
-const WELCOME_TEXT = '💜 𝕭𝖊𝖒 𝖛𝖎𝖓𝖉𝖔, 𝖓𝖔𝖛𝖔 𝖎𝖓𝖙𝖊𝖌𝖗𝖆𝖓𝖙𝖊 💜';
+const WELCOME_LINES = ['💜 Bem-vindo, novo', 'integrante 💜'];
 
 async function getAvatar(sock, jid) {
   try {
@@ -93,10 +93,13 @@ export async function renderWelcomeCard(sock, jid) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = colors.lavender;
-  ctx.font = 'bold 42px sans-serif';
+  // Use broadly supported serif text so the welcome title never disappears
+  // when the runtime lacks the Unicode Mathematical Fraktur glyphs.
+  ctx.font = 'bold 48px "DejaVu Serif", serif';
   ctx.shadowColor = colors.purple;
   ctx.shadowBlur = 14;
-  ctx.fillText(WELCOME_TEXT, width / 2, 700, width - 80);
+  ctx.fillText(WELCOME_LINES[0], width / 2, 700, width - 100);
+  ctx.fillText(WELCOME_LINES[1], width / 2, 762, width - 100);
   ctx.shadowBlur = 0;
 
   return canvas.toBuffer('image/png');
