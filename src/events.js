@@ -7,6 +7,18 @@ export function rememberContact() {}
 
 const WELCOME_TEXT = '💜 𝕭𝖊𝖒 𝖛𝖎𝖓𝖉𝖔, 𝖓𝖔𝖛𝖔 𝖎𝖓𝖙𝖊𝖌𝖗𝖆𝖓𝖙𝖊 💜';
 
+export async function triggerWelcomeTest(sock, chatJid, participantJid) {
+ if (!chatJid?.endsWith('@g.us')) throw new Error('Este teste de evento só funciona em grupos.');
+ const resolvedJid = await resolveParticipant(sock, participantJid);
+ try {
+  const image = await renderWelcomeCard(sock, resolvedJid);
+  await sock.sendMessage(chatJid, { image, caption: WELCOME_TEXT });
+ } catch (error) {
+  console.error('[welcome:test] Não foi possível gerar a imagem:', error.message);
+  await sock.sendMessage(chatJid, { text: WELCOME_TEXT });
+ }
+}
+
 async function resolveParticipant(sock, jid) {
  if (!String(jid).endsWith('@lid')) return jid;
  try {
