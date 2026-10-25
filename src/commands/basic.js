@@ -56,7 +56,7 @@ async function sendMainMenu(ctx) {
   const elapsed = Math.max(0, Date.now() - (commandStartedAt ?? Date.now()));
   const width = 900;
   const padding = 42;
-  const lineHeight = 34;
+  const lineHeight = 40;
   const headerLines = [
     '╭━━━〔 💜 NYX BOT 〕━━━╮',
     '',
@@ -99,7 +99,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}bola8 pergunta`,
     '╰──────────────────────',
   ];
-  const height = Math.max(1700, 450 + (headerLines.length + menuLines.length) * lineHeight);
+  const height = Math.max(1900, 470 + (headerLines.length + menuLines.length) * lineHeight);
   const canvas = createCanvas(width, height);
   const context = canvas.getContext('2d');
   context.fillStyle = '#160d27';
@@ -111,14 +111,19 @@ async function sendMainMenu(ctx) {
   context.drawImage(originalImage,
     (originalImage.width - cropWidth) / 2, (originalImage.height - cropHeight) / 2,
     cropWidth, cropHeight, 0, 0, width, imageHeight);
-  context.fillStyle = '#d9b8ff';
-  context.font = 'bold 28px sans-serif';
+  context.globalAlpha = 1;
   context.textBaseline = 'top';
   let y = imageHeight + 30;
   for (const line of headerLines) {
     context.fillStyle = line.includes('NYX BOT') ? '#ffffff' : '#e8dcff';
-    context.font = line.includes('NYX BOT') ? 'bold 30px sans-serif' : '24px sans-serif';
+    context.font = line.includes('NYX BOT') ? 'bold 34px "DejaVu Sans", sans-serif' : 'bold 27px "DejaVu Sans", sans-serif';
+    context.shadowColor = '#000000';
+    context.shadowBlur = 2;
+    context.lineWidth = 1;
+    context.strokeStyle = '#160d27';
+    context.strokeText(line, padding, y);
     context.fillText(line, padding, y);
+    context.shadowBlur = 0;
     y += lineHeight;
   }
   y += 14;
@@ -129,10 +134,13 @@ async function sendMainMenu(ctx) {
   context.lineTo(width - padding, y);
   context.stroke();
   y += 20;
-  context.font = '25px sans-serif';
+  context.font = 'bold 27px "DejaVu Sans", sans-serif';
   for (const line of menuLines) {
     context.fillStyle = line.includes('GERAL') || line.includes('GRUPO') || line.includes('DIVERSÃO')
-      ? '#d7aaff' : '#ffffff';
+      ? '#f0cfff' : '#ffffff';
+    context.strokeStyle = '#160d27';
+    context.lineWidth = 1;
+    context.strokeText(line, padding, y);
     context.fillText(line, padding, y);
     y += lineHeight;
   }
