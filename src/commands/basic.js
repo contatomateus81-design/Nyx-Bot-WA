@@ -62,7 +62,7 @@ async function sendMainMenu(ctx) {
     `┃ 🔰 Prefixo: ${config.prefix}`,
     '┃',
     '╰━━━━━━━━━━━━━━━━━━━━╯',
-  ].join('\\n');
+  ].join('\n');
 
   // A legenda de imagem tem limite no WhatsApp; o cabeçalho dinâmico vai na imagem
   // e o cardápio completo é enviado logo depois, sem botões interativos.
@@ -97,7 +97,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}escolher A | B`,
     `│ ${config.prefix}bola8 pergunta`,
     '╰──────────────────────',
-  ].join('\\n');
+  ].join('\n');
   await sock.sendMessage(chatJid, { text: menu }, { quoted: message });
 }
 async function sendMenuCategory(ctx, categoryId) {
