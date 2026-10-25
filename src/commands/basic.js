@@ -66,7 +66,7 @@ async function sendMainMenu(ctx) {
     '👑 ADMIN: totag, remover, promover, rebaixar, nomegrupo, descricao, fechargrupo/abrirgrupo, boasvindas, antilink, link/revogar, aviso',
     '━━━━━━━━━━━━━━━━━━',
     `💜 Use ${config.prefix}menu <categoria> para detalhes.`,
-  ].join('\\n');
+  ].join('\n');
   await sock.sendMessage(chatJid, {
     image: menuImage,
     caption: caption.slice(0, 1024),
