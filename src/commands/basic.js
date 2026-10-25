@@ -58,17 +58,21 @@ async function sendMainMenu(ctx) {
     `┃ 📅 Data/Hora: ${formatMenuDate()}`,
     `┃ 👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 100)}`,
     `┃ 🚀 Ping: ${elapsed} ms`, '┃', '╰━━━━━━━━━━━━━━━━━━━━╯',
-    '', 'Escolha uma categoria na lista abaixo.',
+    '', 'Veja as categorias na mensagem seguinte.',
   ].join('\n');
   await sock.sendMessage(chatJid, { image: menuImage, caption, mentions: senderJid ? [senderJid] : [] }, { quoted: message });
+  const categoryLines = MENU_CATEGORIES.map((category, index) =>
+    `${index + 1}. ${category.title} — ${category.description}\n   Envie ${config.prefix}menu ${category.id}`
+  );
   await sock.sendMessage(chatJid, {
-    text: '💜 *Menus da Nyx Bot*\nSelecione uma categoria para ver os comandos e como utilizá-los.',
-    footer: 'NYX BOT • Menu interativo',
-    title: 'Escolha uma categoria',
-    buttonText: 'Ver categorias',
-    sections: [{ title: 'Categorias disponíveis', rows: MENU_CATEGORIES.map((category) => ({
-      title: category.title, description: category.description, rowId: `nyxmenu:${category.id}`,
-    })) }],
+    text: [
+      '💜 *MENUS DA NYX BOT*',
+      'Escolha uma categoria usando o comando indicado abaixo:',
+      '',
+      ...categoryLines,
+      '',
+      'ℹ️ Esse formato funciona mesmo em versões do WhatsApp que não exibem listas interativas.',
+    ].join('\n'),
   }, { quoted: message });
 }
 
@@ -90,7 +94,14 @@ registerCommand({
   aliases: ['help', 'ajuda'],
   role: 'membro',
   async execute(ctx) {
-    if (ctx.args?.[0]) return sendMenuCategory(ctx, ctx.args[0]);
+    if (ctx.args?.[0]) {
+      const requested = String(ctx.args[0]).toLowerCase();
+      const numericIndex = /^\\d+$/.test(requested) ? Number(requested) - 1 : -1;
+      const categoryId = numericIndex >= 0 && numericIndex < MENU_CATEGORIES.length
+        ? MENU_CATEGORIES[numericIndex].id
+        : requested;
+      return sendMenuCategory(ctx, categoryId);
+    }
     await sendMainMenu(ctx);
   },
 });
