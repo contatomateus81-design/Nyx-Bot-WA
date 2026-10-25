@@ -1,6 +1,5 @@
 import { registerCommand } from '../handler.js';
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { config } from '../config.js';
 
 const MENU_CATEGORIES = [
@@ -45,32 +44,25 @@ function formatMenuDate(date = new Date()) {
 
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
-  const { createCanvas, loadImage } = await import('@napi-rs/canvas');
-  const originalPath = new URL('../../mídia/menu.jpg', import.meta.url);
-  const originalImage = await loadImage(fileURLToPath(originalPath));
+  const username = String(message.pushName ?? '').trim().slice(0, 50) || senderJid.split('@')[0];
   let groupName = isGroup ? 'Grupo (nome indisponível)' : 'PV';
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
   }
-  const username = String(message.pushName ?? '').trim().slice(0, 32) || senderJid.split('@')[0];
   const elapsed = Math.max(0, Date.now() - (commandStartedAt ?? Date.now()));
-  const width = 900;
-  const padding = 42;
-  const lineHeight = 40;
-  const headerLines = [
+  const menuText = [
     '╭━━━〔 💜 NYX BOT 〕━━━╮',
     '',
     `👤 Usuário: ${username}`,
     `⚡ Comando: ${config.prefix}menu`,
     `📅 Data/Hora: ${formatMenuDate()}`,
-    `👥 Grupo: ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 45)}`,
+    `👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 70)}`,
     `🚀 Ping: ${elapsed} ms`,
     `🔰 Prefixo: ${config.prefix}`,
     '',
     '╰━━━━━━━━━━━━━━━━━━━━╯',
-  ];
-  const menuLines = [
-    '│ ✨ GERAL',
+    '',
+    '╭━━━〔 ✨ GERAL 〕━━━╮',
     `│ ${config.prefix}ping — testar resposta`,
     `│ ${config.prefix}tempo — tempo ligado`,
     `│ ${config.prefix}sobre — sobre o bot`,
@@ -81,7 +73,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}fig — criar figurinha de imagem`,
     `│ ${config.prefix}perfil [@pessoa] — ficha divertida`,
     '',
-    '│ 👥 GRUPO (admin)',
+    '╭━━━〔 👥 GRUPO (admin) 〕━━━╮',
     `│ ${config.prefix}infogrupo — informações`,
     `│ ${config.prefix}totag — marcar todos`,
     `│ ${config.prefix}remover — remover membro`,
@@ -94,57 +86,14 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}nota adicionar|ver|listar|apagar`,
     `│ ${config.prefix}aviso — advertir membro`,
     '',
-    '│ 🎲 DIVERSÃO',
+    '╭━━━〔 🎲 DIVERSÃO 〕━━━╮',
     `│ ${config.prefix}escolher A | B`,
     `│ ${config.prefix}bola8 pergunta`,
-    '╰──────────────────────',
-  ];
-  const height = Math.max(1900, 470 + (headerLines.length + menuLines.length) * lineHeight);
-  const canvas = createCanvas(width, height);
-  const context = canvas.getContext('2d');
-  context.fillStyle = '#160d27';
-  context.fillRect(0, 0, width, height);
-  const imageHeight = 320;
-  const scale = Math.max(width / originalImage.width, imageHeight / originalImage.height);
-  const cropWidth = width / scale;
-  const cropHeight = imageHeight / scale;
-  context.drawImage(originalImage,
-    (originalImage.width - cropWidth) / 2, (originalImage.height - cropHeight) / 2,
-    cropWidth, cropHeight, 0, 0, width, imageHeight);
-  context.globalAlpha = 1;
-  context.textBaseline = 'top';
-  let y = imageHeight + 30;
-  for (const line of headerLines) {
-    context.fillStyle = line.includes('NYX BOT') ? '#ffffff' : '#e8dcff';
-    context.font = line.includes('NYX BOT') ? 'bold 34px "DejaVu Sans", sans-serif' : 'bold 27px "DejaVu Sans", sans-serif';
-    context.shadowColor = '#000000';
-    context.shadowBlur = 2;
-    context.lineWidth = 1;
-    context.strokeStyle = '#160d27';
-    context.strokeText(line, padding, y);
-    context.fillText(line, padding, y);
-    context.shadowBlur = 0;
-    y += lineHeight;
-  }
-  y += 14;
-  context.strokeStyle = '#8055b5';
-  context.lineWidth = 2;
-  context.beginPath();
-  context.moveTo(padding, y);
-  context.lineTo(width - padding, y);
-  context.stroke();
-  y += 20;
-  context.font = 'bold 27px "DejaVu Sans", sans-serif';
-  for (const line of menuLines) {
-    context.fillStyle = line.includes('GERAL') || line.includes('GRUPO') || line.includes('DIVERSÃO')
-      ? '#f0cfff' : '#ffffff';
-    context.strokeStyle = '#160d27';
-    context.lineWidth = 1;
-    context.strokeText(line, padding, y);
-    context.fillText(line, padding, y);
-    y += lineHeight;
-  }
-  await sock.sendMessage(chatJid, { image: await canvas.encode('png') }, { quoted: message });
+    '╰━━━━━━━━━━━━━━━━━━━━╯',
+  ].join('\n');
+
+  const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
+  await sock.sendMessage(chatJid, { image, caption: menuText }, { quoted: message });
 }
 async function sendMenuCategory(ctx, categoryId) {
   const category = MENU_CATEGORIES.find((item) => item.id === categoryId);
