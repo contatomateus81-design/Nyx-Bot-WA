@@ -51,7 +51,7 @@ async function sendMainMenu(ctx) {
   const elapsed = Math.max(0, Date.now() - (commandStartedAt ?? Date.now()));
   const caption = [
     '╭━━━〔 💜 NYX BOT 〕━━━╮', '┃',
-    `┃ 👤 Usuário: @${senderJid.split('@')[0]}`,
+    `┃ 👤 Usuário: ${username} (@${senderJid.split('@')[0]})`,
     `┃ ⚡ Comando: ${config.prefix}menu`,
     `┃ 📅 Data/Hora: ${formatMenuDate()}`,
     `┃ 👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 100)}`,
