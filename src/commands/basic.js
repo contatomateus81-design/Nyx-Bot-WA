@@ -45,34 +45,61 @@ function formatMenuDate(date = new Date()) {
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
   const menuImage = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
-  let groupName = isGroup ? 'Grupo (nome indisponível)' : 'Conversa privada';
+  let groupName = isGroup ? 'Grupo (nome indisponível)' : 'PV';
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
   }
   const username = String(message.pushName ?? '').trim().slice(0, 32) || senderJid.split('@')[0];
   const elapsed = Math.max(0, Date.now() - (commandStartedAt ?? Date.now()));
-  const caption = [
+  const header = [
     '╭━━━〔 💜 NYX BOT 〕━━━╮',
-    `👤 ${username} | ⚡ ${config.prefix}menu`,
-    `📅 ${formatMenuDate()} | 🚀 ${elapsed} ms`,
-    `👥 ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 45)}`,
-    '━━━━━━━━━━━━━━━━━━',
-    '🏠 PRINCIPAL: ping, tempo, sobre, dono, status',
-    '🎵 DOWNLOADS: play <nome/link>',
-    '🎮 BRINCADEIRAS: escolher, bola8, perfil',
-    '🖼️ FIGURINHAS: fig',
-    '🤖 IA E VOZ: tts <texto>',
-    '🛠️ FERRAMENTAS: infogrupo, nota adicionar/ver/listar/apagar',
-    '👑 ADMIN: totag, remover, promover, rebaixar, nomegrupo, descricao, fechargrupo/abrirgrupo, boasvindas, antilink, link/revogar, aviso',
-    '━━━━━━━━━━━━━━━━━━',
-    `💜 Use ${config.prefix}menu <categoria> para detalhes.`,
-  ].join('\n');
-  await sock.sendMessage(chatJid, {
-    image: menuImage,
-    caption: caption.slice(0, 1024),
-  }, { quoted: message });
-}
+    '┃',
+    `┃ 👤 Usuário: ${username}`,
+    `┃ ⚡ Comando: ${config.prefix}menu`,
+    `┃ 📅 Data/Hora: ${formatMenuDate()}`,
+    `┃ 👥 Grupo: ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 45)}`,
+    `┃ 🚀 Ping: ${elapsed} ms`,
+    `┃ 🔰 Prefixo: ${config.prefix}`,
+    '┃',
+    '╰━━━━━━━━━━━━━━━━━━━━╯',
+  ].join('\\n');
 
+  // A legenda de imagem tem limite no WhatsApp; o cabeçalho dinâmico vai na imagem
+  // e o cardápio completo é enviado logo depois, sem botões interativos.
+  await sock.sendMessage(chatJid, { image: menuImage, caption: header }, { quoted: message });
+
+  const menu = [
+    '│ ✨ GERAL',
+    `│ ${config.prefix}ping — testar resposta`,
+    `│ ${config.prefix}tempo — tempo ligado`,
+    `│ ${config.prefix}sobre — sobre o bot`,
+    `│ ${config.prefix}dono — contato do criador`,
+    `│ ${config.prefix}play nome ou link — baixar áudio`,
+    `│ ${config.prefix}tts texto — falar em áudio (TTS local)`,
+    `│ ${config.prefix}status — diagnóstico do bot`,
+    `│ ${config.prefix}fig — criar figurinha de imagem`,
+    `│ ${config.prefix}perfil [@pessoa] — ficha divertida`,
+    '│',
+    '│ 👥 GRUPO (admin)',
+    `│ ${config.prefix}infogrupo — informações`,
+    `│ ${config.prefix}totag — marcar todos`,
+    `│ ${config.prefix}remover — remover membro`,
+    `│ ${config.prefix}promover / rebaixar`,
+    `│ ${config.prefix}link / revogar — convite`,
+    `│ ${config.prefix}nomegrupo / descricao`,
+    `│ ${config.prefix}fechargrupo / abrirgrupo`,
+    `│ ${config.prefix}boasvindas 1|0 (on|off)`,
+    `│ ${config.prefix}antilink 1|0 (on|off)`,
+    `│ ${config.prefix}nota adicionar|ver|listar|apagar`,
+    `│ ${config.prefix}aviso — advertir membro`,
+    '│',
+    '│ 🎲 DIVERSÃO',
+    `│ ${config.prefix}escolher A | B`,
+    `│ ${config.prefix}bola8 pergunta`,
+    '╰──────────────────────',
+  ].join('\\n');
+  await sock.sendMessage(chatJid, { text: menu }, { quoted: message });
+}
 async function sendMenuCategory(ctx, categoryId) {
   const category = MENU_CATEGORIES.find((item) => item.id === categoryId);
   if (!category) return ctx.reply(`Não reconheci essa categoria. Envie ${config.prefix}menu para abrir a lista novamente.`);
