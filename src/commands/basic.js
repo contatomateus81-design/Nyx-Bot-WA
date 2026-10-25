@@ -163,7 +163,7 @@ registerCommand({
   async execute(ctx) {
     if (ctx.args?.[0]) {
       const requested = String(ctx.args[0]).toLowerCase();
-      const numericIndex = /^\\d+$/.test(requested) ? Number(requested) - 1 : -1;
+      const numericIndex = /^\d+$/.test(requested) ? Number(requested) - 1 : -1;
       const categoryId = numericIndex >= 0 && numericIndex < MENU_CATEGORIES.length
         ? MENU_CATEGORIES[numericIndex].id
         : requested;
