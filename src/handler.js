@@ -30,9 +30,18 @@ export async function runCommandForTest(context, name, args = []) {
 }
 
 export async function handleMessage(sock, message) {
+  let nativeFlowId;
+  const nativeFlowParams = message.message?.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson;
+  if (typeof nativeFlowParams === 'string') {
+    try {
+      const parsed = JSON.parse(nativeFlowParams);
+      nativeFlowId = parsed.id ?? parsed.row_id ?? parsed.selectedId;
+    } catch {}
+  }
   const interactiveId = message.message?.listResponseMessage?.singleSelectReply?.selectedRowId
     ?? message.message?.buttonsResponseMessage?.selectedButtonId
-    ?? message.message?.templateButtonReplyMessage?.selectedId;
+    ?? message.message?.templateButtonReplyMessage?.selectedId
+    ?? nativeFlowId;
   const isMenuSelection = typeof interactiveId === 'string' && interactiveId.startsWith('nyxmenu:');
   const text = isMenuSelection ? interactiveId : (
     message.message?.conversation
