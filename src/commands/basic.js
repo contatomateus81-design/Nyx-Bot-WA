@@ -1,5 +1,6 @@
 import { registerCommand } from '../handler.js';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { config } from '../config.js';
 
 const MENU_CATEGORIES = [
@@ -46,7 +47,7 @@ async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
   const { createCanvas, loadImage } = await import('@napi-rs/canvas');
   const originalPath = new URL('../../mídia/menu.jpg', import.meta.url);
-  const originalImage = await loadImage(originalPath);
+  const originalImage = await loadImage(fileURLToPath(originalPath));
   let groupName = isGroup ? 'Grupo (nome indisponível)' : 'PV';
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
