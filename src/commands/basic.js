@@ -1,7 +1,6 @@
 import { registerCommand } from '../handler.js';
 import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
-import { generateWAMessageContent, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 
 const MENU_CATEGORIES = [
   { id: 'principal', title: '🏠 PRINCIPAL', description: 'Informações e comandos gerais', lines: [
@@ -44,43 +43,21 @@ function formatMenuDate(date = new Date()) {
 }
 
 async function sendMainMenu(ctx) {
-  const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
-  console.log('[menu-debug] etapa 1: iniciou sendMainMenu');
-  const menuImage = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
-  console.log('[menu-debug] etapa 2: imagem lida, bytes:', menuImage.length);
-  let groupName = isGroup ? 'Grupo (nome indisponível)' : 'Conversa privada';
-  if (isGroup) {
-    try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
-  }
-  const username = String(message.pushName ?? '').trim().slice(0, 80) || senderJid.split('@')[0];
-  const elapsed = Math.max(0, Date.now() - (commandStartedAt ?? Date.now()));
-  const caption = [
-    '╭━━━〔 💜 NYX BOT 〕━━━╮', '┃',
-    `┃ 👤 Usuário: ${username} (@${senderJid.split('@')[0]})`,
-    `┃ ⚡ Comando: ${config.prefix}menu`,
-    `┃ 📅 Data/Hora: ${formatMenuDate()}`,
-    `┃ 👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 100)}`,
-    `┃ 🚀 Ping: ${elapsed} ms`, '┃', '╰━━━━━━━━━━━━━━━━━━━━╯',
-    '', 'Abra a lista abaixo e escolha uma categoria.',
-  ].join('\n');
-  // Envia imagem, texto e seletor dentro de uma única mensagem interativa.
-  console.log('[menu-debug] etapa 3: iniciando upload/preparo da imagem');
-  const uploadedImage = await generateWAMessageContent(
-    { image: menuImage },
-    { upload: sock.waUploadToServer },
-  );
-  console.log('[menu-debug] etapa 4: imagem preparada');
-  const interactiveContent = proto.Message.fromObject({
+  const { sock, chatJid, message } = ctx;
+  // Teste isolado: seletor nativo sem imagem, usando a estrutura documentada.
+  await sock.sendMessage(chatJid, {
     interactiveMessage: {
-      header: {
-        title: '💜 NYX BOT',
-        hasMediaAttachment: true,
-        imageMessage: uploadedImage.imageMessage,
-      },
-      body: { text: caption },
-      footer: { text: 'NYX BOT • Menu interativo' },
+      header: '💜 NYX BOT',
+      title: 'Escolha uma categoria',
+      footer: 'NYX BOT • Menu interativo',
       nativeFlowMessage: {
-        messageVersion: 1,
+        messageParamsJson: JSON.stringify({
+          bottom_sheet: {
+            in_thread_buttons_limit: 1,
+            list_title: 'Categorias',
+            button_title: 'Ver categorias',
+          },
+        }),
         buttons: [{
           name: 'single_select',
           buttonParamsJson: JSON.stringify({
@@ -97,22 +74,7 @@ async function sendMainMenu(ctx) {
         }],
       },
     },
-  });
-  console.log('[menu-debug] etapa 5: conteúdo interativo montado');
-  const interactiveMessage = generateWAMessageFromContent(chatJid, interactiveContent, {
-    userJid: sock.user?.id,
-    quoted: message,
-  });
-  console.log('[menu-debug] etapa 6: iniciando relayMessage');
-  await sock.relayMessage(chatJid, interactiveMessage.message, {
-    messageId: interactiveMessage.key.id,
-    additionalNodes: [{
-      tag: 'biz',
-      attrs: {},
-      content: [{ tag: 'interactive', attrs: { type: 'native_flow', v: '1' } }],
-    }],
-  });
-  console.log('[menu-debug] etapa 7: relayMessage concluiu');
+  }, { quoted: message });
 }
 
 async function sendMenuCategory(ctx, categoryId) {
