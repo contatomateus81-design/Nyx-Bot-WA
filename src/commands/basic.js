@@ -44,26 +44,35 @@ function formatMenuDate(date = new Date()) {
 
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message } = ctx;
-  // Teste isolado: envia apenas o seletor nativo, sem imagem nem proto manual.
+  // Teste isolado: seletor nativo sem imagem, usando a estrutura documentada.
   await sock.sendMessage(chatJid, {
     interactiveMessage: {
       header: '💜 NYX BOT',
       title: 'Escolha uma categoria',
       footer: 'NYX BOT • Menu interativo',
-      buttons: [{
-        name: 'single_select',
-        buttonParamsJson: JSON.stringify({
-          title: 'Ver categorias',
-          sections: [{
-            title: 'Categorias disponíveis',
-            rows: MENU_CATEGORIES.map((category) => ({
-              title: category.title,
-              description: category.description,
-              id: `nyxmenu:${category.id}`,
-            })),
-          }],
+      nativeFlowMessage: {
+        messageParamsJson: JSON.stringify({
+          bottom_sheet: {
+            in_thread_buttons_limit: 1,
+            list_title: 'Categorias',
+            button_title: 'Ver categorias',
+          },
         }),
-      }],
+        buttons: [{
+          name: 'single_select',
+          buttonParamsJson: JSON.stringify({
+            title: 'Ver categorias',
+            sections: [{
+              title: 'Categorias disponíveis',
+              rows: MENU_CATEGORIES.map((category) => ({
+                title: category.title,
+                description: category.description,
+                id: `nyxmenu:${category.id}`,
+              })),
+            }],
+          }),
+        }],
+      },
     },
   }, { quoted: message });
 }
