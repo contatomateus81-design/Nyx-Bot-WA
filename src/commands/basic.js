@@ -1,7 +1,6 @@
 import { registerCommand } from '../handler.js';
 import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
-import { generateWAMessageContent, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 
 const MENU_CATEGORIES = [
   { id: 'principal', title: '🏠 PRINCIPAL', description: 'Informações e comandos gerais', lines: [
@@ -43,73 +42,6 @@ function formatMenuDate(date = new Date()) {
   }).format(date);
 }
 
-async function sendInteractiveButtons(ctx, { text, buttons, image }) {
-  const { sock, chatJid, message } = ctx;
-  let header = { title: '💜 NYX BOT', hasMediaAttachment: false };
-  if (image) {
-    const uploadedImage = await generateWAMessageContent(
-      { image },
-      { upload: sock.waUploadToServer },
-    );
-    header = {
-      title: '💜 NYX BOT',
-      hasMediaAttachment: true,
-      imageMessage: uploadedImage.imageMessage,
-    };
-  }
-  const interactiveContent = proto.Message.fromObject({
-    interactiveMessage: {
-      header,
-      body: { text },
-      footer: { text: 'NYX BOT • Menu interativo' },
-      nativeFlowMessage: {
-        messageVersion: 1,
-        buttons: buttons.map((button) => ({
-          name: 'quick_reply',
-          buttonParamsJson: JSON.stringify({
-            display_text: button.label,
-            id: button.id,
-          }),
-        })),
-      },
-    },
-  });
-  const outgoing = generateWAMessageFromContent(chatJid, interactiveContent, {
-    userJid: sock.user?.id,
-    quoted: message,
-  });
-  await sock.relayMessage(chatJid, outgoing.message, {
-    messageId: outgoing.key.id,
-    additionalNodes: [{
-      tag: 'biz',
-      attrs: {},
-      content: [{ tag: 'interactive', attrs: { type: 'native_flow', v: '1' } }],
-    }],
-  });
-}
-
-function menuButtonsForPage(page) {
-  if (page === 1) {
-    return [
-      { label: '🎮 Brincadeiras', id: 'nyxmenu:brincadeiras' },
-      { label: '🖼️ Figurinhas', id: 'nyxmenu:figurinhas' },
-      { label: '➡️ Mais menus', id: 'nyxmenu:mais2' },
-    ];
-  }
-  if (page === 2) {
-    return [
-      { label: '🤖 IA e Voz', id: 'nyxmenu:ia' },
-      { label: '🛠️ Ferramentas', id: 'nyxmenu:ferramentas' },
-      { label: '👑 Administração', id: 'nyxmenu:admin' },
-    ];
-  }
-  return [
-    { label: '🏠 Principal', id: 'nyxmenu:principal' },
-    { label: '🎵 Downloads', id: 'nyxmenu:downloads' },
-    { label: '➡️ Mais menus', id: 'nyxmenu:mais' },
-  ];
-}
-
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
   const menuImage = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
@@ -117,28 +49,28 @@ async function sendMainMenu(ctx) {
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
   }
-  const username = String(message.pushName ?? '').trim().slice(0, 80) || senderJid.split('@')[0];
+  const username = String(message.pushName ?? '').trim().slice(0, 32) || senderJid.split('@')[0];
   const elapsed = Math.max(0, Date.now() - (commandStartedAt ?? Date.now()));
   const caption = [
-    '╭━━━〔 💜 NYX BOT 〕━━━╮', '┃',
-    `┃ 👤 Usuário: ${username} (@${senderJid.split('@')[0]})`,
-    `┃ ⚡ Comando: ${config.prefix}menu`,
-    `┃ 📅 Data/Hora: ${formatMenuDate()}`,
-    `┃ 👥 Grupo: ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 100)}`,
-    `┃ 🚀 Ping: ${elapsed} ms`, '┃', '╰━━━━━━━━━━━━━━━━━━━━╯',
-    '', 'Escolha um menu nos botões abaixo.',
+    '╭━━━〔 💜 NYX BOT 〕━━━╮',
+    `👤 ${username} | ⚡ ${config.prefix}menu`,
+    `📅 ${formatMenuDate()} | 🚀 ${elapsed} ms`,
+    `👥 ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 45)}`,
+    '━━━━━━━━━━━━━━━━━━',
+    '🏠 PRINCIPAL: ping, tempo, sobre, dono, status',
+    '🎵 DOWNLOADS: play <nome/link>',
+    '🎮 BRINCADEIRAS: escolher, bola8, perfil',
+    '🖼️ FIGURINHAS: fig',
+    '🤖 IA E VOZ: tts <texto>',
+    '🛠️ FERRAMENTAS: infogrupo, nota adicionar/ver/listar/apagar',
+    '👑 ADMIN: totag, remover, promover, rebaixar, nomegrupo, descricao, fechargrupo/abrirgrupo, boasvindas, antilink, link/revogar, aviso',
+    '━━━━━━━━━━━━━━━━━━',
+    `💜 Use ${config.prefix}menu <categoria> para detalhes.`,
   ].join('\\n');
-  await sendInteractiveButtons(ctx, {
-    text: caption,
+  await sock.sendMessage(chatJid, {
     image: menuImage,
-    buttons: menuButtonsForPage(0),
-  });
-}
-async function sendMoreMenus(ctx, page = 1) {
-  const text = page === 1
-    ? '💜 NYX BOT • MAIS MENUS\\nEscolha uma categoria:'
-    : '💜 NYX BOT • ÚLTIMOS MENUS\\nEscolha uma categoria:';
-  await sendInteractiveButtons(ctx, { text, buttons: menuButtonsForPage(page) });
+    caption: caption.slice(0, 1024),
+  }, { quoted: message });
 }
 
 async function sendMenuCategory(ctx, categoryId) {
