@@ -1,6 +1,7 @@
 import { registerCommand } from '../handler.js';
 import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
+import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 
 const MENU_CATEGORIES = [
   { id: 'principal', title: '🏠 PRINCIPAL', description: 'Informações e comandos gerais', lines: [
@@ -58,22 +59,38 @@ async function sendMainMenu(ctx) {
     `┃ 📅 Data/Hora: ${formatMenuDate()}`,
     `┃ 👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 100)}`,
     `┃ 🚀 Ping: ${elapsed} ms`, '┃', '╰━━━━━━━━━━━━━━━━━━━━╯',
-    '', 'Veja as categorias na mensagem seguinte.',
+    '', 'Abra a lista abaixo e escolha uma categoria.',
   ].join('\n');
   await sock.sendMessage(chatJid, { image: menuImage, caption, mentions: senderJid ? [senderJid] : [] }, { quoted: message });
-  const categoryLines = MENU_CATEGORIES.map((category, index) =>
-    `${index + 1}. ${category.title} — ${category.description}\n   Envie ${config.prefix}menu ${category.id}`
-  );
-  await sock.sendMessage(chatJid, {
-    text: [
-      '💜 *MENUS DA NYX BOT*',
-      'Escolha uma categoria usando o comando indicado abaixo:',
-      '',
-      ...categoryLines,
-      '',
-      'ℹ️ Esse formato funciona mesmo em versões do WhatsApp que não exibem listas interativas.',
-    ].join('\n'),
-  }, { quoted: message });
+  const listContent = proto.Message.fromObject({
+    listMessage: {
+      title: '💜 Menus da Nyx Bot',
+      description: 'Selecione uma categoria para ver os comandos e como utilizá-los.',
+      buttonText: 'Ver categorias',
+      footerText: 'NYX BOT • Menu interativo',
+      listType: proto.Message.ListMessage.ListType.SINGLE_SELECT,
+      sections: [{
+        title: 'Categorias disponíveis',
+        rows: MENU_CATEGORIES.map((category) => ({
+          title: category.title,
+          description: category.description,
+          rowId: `nyxmenu:${category.id}`,
+        })),
+      }],
+    },
+  });
+  const listMessage = generateWAMessageFromContent(chatJid, listContent, {
+    userJid: sock.user?.id,
+    quoted: message,
+  });
+  await sock.relayMessage(chatJid, listMessage.message, {
+    messageId: listMessage.key.id,
+    additionalNodes: [{
+      tag: 'biz',
+      attrs: {},
+      content: [{ tag: 'list', attrs: { type: 'product_list', v: '2' } }],
+    }],
+  });
 }
 
 async function sendMenuCategory(ctx, categoryId) {
