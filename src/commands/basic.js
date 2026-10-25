@@ -74,8 +74,6 @@ async function sendMainMenu(ctx) {
 }
 
 async function sendMenuCategory(ctx, categoryId) {
-  if (categoryId === 'mais') return sendMoreMenus(ctx, 1);
-  if (categoryId === 'mais2') return sendMoreMenus(ctx, 2);
   const category = MENU_CATEGORIES.find((item) => item.id === categoryId);
   if (!category) return ctx.reply(`Não reconheci essa categoria. Envie ${config.prefix}menu para abrir a lista novamente.`);
   const body = [
