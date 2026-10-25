@@ -44,7 +44,7 @@ function formatMenuDate(date = new Date()) {
 
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
-  const username = String(message.pushName ?? '').trim().slice(0, 50) || senderJid.split('@')[0];
+  const username = `@${senderJid.split('@')[0].split(':')[0]}`;
   let groupName = isGroup ? 'Grupo (nome indisponível)' : 'PV';
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
@@ -93,7 +93,7 @@ async function sendMainMenu(ctx) {
   ].join('\n');
 
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
-  await sock.sendMessage(chatJid, { image, caption: menuText }, { quoted: message });
+  await sock.sendMessage(chatJid, { image, caption: menuText, mentions: [senderJid] }, { quoted: message });
 }
 async function sendMenuCategory(ctx, categoryId) {
   const category = MENU_CATEGORIES.find((item) => item.id === categoryId);
