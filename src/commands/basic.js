@@ -61,48 +61,40 @@ async function sendMainMenu(ctx) {
     `┃ 🚀 Ping: ${elapsed} ms`, '┃', '╰━━━━━━━━━━━━━━━━━━━━╯',
     '', 'Abra a lista abaixo e escolha uma categoria.',
   ].join('\n');
-  // A imagem é anexada ao cabeçalho da própria mensagem interativa.
-  const uploadedImage = await generateWAMessageContent(
-    { image: menuImage },
-    { upload: sock.waUploadToServer },
-  );
-  const interactiveContent = proto.Message.fromObject({
-    interactiveMessage: {
-      header: {
-        title: '💜 NYX BOT',
-        hasMediaAttachment: true,
-        imageMessage: uploadedImage.imageMessage,
-      },
-      body: { text: caption },
-      footer: { text: 'NYX BOT • Menu interativo' },
-      nativeFlowMessage: {
-        buttons: [{
-          name: 'single_select',
-          buttonParamsJson: JSON.stringify({
-            title: 'Ver categorias',
-            sections: [{
-              title: 'Categorias disponíveis',
-              rows: MENU_CATEGORIES.map((category) => ({
-                title: category.title,
-                description: category.description,
-                id: `nyxmenu:${category.id}`,
-              })),
-            }],
-          }),
-        }],
-      },
+  // Envia a imagem e, em seguida, a lista nativa em uma mensagem separada.
+  // Esta é a versão compatível que já havia sido testada antes da tentativa de unificação.
+  await sock.sendMessage(chatJid, {
+    image: menuImage,
+    caption: caption,
+  }, { quoted: message });
+
+  const listContent = proto.Message.fromObject({
+    listMessage: {
+      title: '💜 Menus da Nyx Bot',
+      description: 'Selecione uma categoria para ver os comandos e como utilizá-los.',
+      buttonText: 'Ver categorias',
+      footerText: 'NYX BOT • Menu interativo',
+      listType: 1,
+      sections: [{
+        title: 'Categorias disponíveis',
+        rows: MENU_CATEGORIES.map((category) => ({
+          title: category.title,
+          description: category.description,
+          rowId: `nyxmenu:${category.id}`,
+        })),
+      }],
     },
   });
-  const interactiveMessage = generateWAMessageFromContent(chatJid, interactiveContent, {
+  const listMessage = generateWAMessageFromContent(chatJid, listContent, {
     userJid: sock.user?.id,
     quoted: message,
   });
-  await sock.relayMessage(chatJid, interactiveMessage.message, {
-    messageId: interactiveMessage.key.id,
+  await sock.relayMessage(chatJid, listMessage.message, {
+    messageId: listMessage.key.id,
     additionalNodes: [{
       tag: 'biz',
       attrs: {},
-      content: [{ tag: 'interactive', attrs: { type: 'native_flow', v: '1' } }],
+      content: [{ tag: 'list', attrs: { type: 'product_list', v: '2' } }],
     }],
   });
 }
