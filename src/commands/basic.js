@@ -98,7 +98,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}bola8 pergunta`,
     '╰──────────────────────',
   ];
-  const height = Math.max(1500, 360 + (headerLines.length + menuLines.length) * lineHeight);
+  const height = Math.max(1700, 450 + (headerLines.length + menuLines.length) * lineHeight);
   const canvas = createCanvas(width, height);
   const context = canvas.getContext('2d');
   context.fillStyle = '#160d27';
