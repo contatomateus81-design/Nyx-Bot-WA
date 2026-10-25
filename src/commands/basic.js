@@ -43,11 +43,76 @@ function formatMenuDate(date = new Date()) {
   }).format(date);
 }
 
+async function sendInteractiveButtons(ctx, { text, buttons, image }) {
+  const { sock, chatJid, message } = ctx;
+  let header = { title: '💜 NYX BOT', hasMediaAttachment: false };
+  if (image) {
+    const uploadedImage = await generateWAMessageContent(
+      { image },
+      { upload: sock.waUploadToServer },
+    );
+    header = {
+      title: '💜 NYX BOT',
+      hasMediaAttachment: true,
+      imageMessage: uploadedImage.imageMessage,
+    };
+  }
+  const interactiveContent = proto.Message.fromObject({
+    interactiveMessage: {
+      header,
+      body: { text },
+      footer: { text: 'NYX BOT • Menu interativo' },
+      nativeFlowMessage: {
+        messageVersion: 1,
+        buttons: buttons.map((button) => ({
+          name: 'quick_reply',
+          buttonParamsJson: JSON.stringify({
+            display_text: button.label,
+            id: button.id,
+          }),
+        })),
+      },
+    },
+  });
+  const outgoing = generateWAMessageFromContent(chatJid, interactiveContent, {
+    userJid: sock.user?.id,
+    quoted: message,
+  });
+  await sock.relayMessage(chatJid, outgoing.message, {
+    messageId: outgoing.key.id,
+    additionalNodes: [{
+      tag: 'biz',
+      attrs: {},
+      content: [{ tag: 'interactive', attrs: { type: 'native_flow', v: '1' } }],
+    }],
+  });
+}
+
+function menuButtonsForPage(page) {
+  if (page === 1) {
+    return [
+      { label: '🎮 Brincadeiras', id: 'nyxmenu:brincadeiras' },
+      { label: '🖼️ Figurinhas', id: 'nyxmenu:figurinhas' },
+      { label: '➡️ Mais menus', id: 'nyxmenu:mais2' },
+    ];
+  }
+  if (page === 2) {
+    return [
+      { label: '🤖 IA e Voz', id: 'nyxmenu:ia' },
+      { label: '🛠️ Ferramentas', id: 'nyxmenu:ferramentas' },
+      { label: '👑 Administração', id: 'nyxmenu:admin' },
+    ];
+  }
+  return [
+    { label: '🏠 Principal', id: 'nyxmenu:principal' },
+    { label: '🎵 Downloads', id: 'nyxmenu:downloads' },
+    { label: '➡️ Mais menus', id: 'nyxmenu:mais' },
+  ];
+}
+
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
-  console.log('[menu-debug] etapa 1: iniciou sendMainMenu');
   const menuImage = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
-  console.log('[menu-debug] etapa 2: imagem lida, bytes:', menuImage.length);
   let groupName = isGroup ? 'Grupo (nome indisponível)' : 'Conversa privada';
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
@@ -59,63 +124,26 @@ async function sendMainMenu(ctx) {
     `┃ 👤 Usuário: ${username} (@${senderJid.split('@')[0]})`,
     `┃ ⚡ Comando: ${config.prefix}menu`,
     `┃ 📅 Data/Hora: ${formatMenuDate()}`,
-    `┃ 👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 100)}`,
+    `┃ 👥 Grupo: ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 100)}`,
     `┃ 🚀 Ping: ${elapsed} ms`, '┃', '╰━━━━━━━━━━━━━━━━━━━━╯',
-    '', 'Abra a lista abaixo e escolha uma categoria.',
-  ].join('\n');
-  // Envia imagem, texto e seletor dentro de uma única mensagem interativa.
-  console.log('[menu-debug] etapa 3: iniciando upload/preparo da imagem');
-  const uploadedImage = await generateWAMessageContent(
-    { image: menuImage },
-    { upload: sock.waUploadToServer },
-  );
-  console.log('[menu-debug] etapa 4: imagem preparada');
-  const interactiveContent = proto.Message.fromObject({
-    interactiveMessage: {
-      header: {
-        title: '💜 NYX BOT',
-        hasMediaAttachment: true,
-        imageMessage: uploadedImage.imageMessage,
-      },
-      body: { text: caption },
-      footer: { text: 'NYX BOT • Menu interativo' },
-      nativeFlowMessage: {
-        messageVersion: 1,
-        buttons: [{
-          name: 'single_select',
-          buttonParamsJson: JSON.stringify({
-            title: 'Ver categorias',
-            sections: [{
-              title: 'Categorias disponíveis',
-              rows: MENU_CATEGORIES.map((category) => ({
-                title: category.title,
-                description: category.description,
-                id: `nyxmenu:${category.id}`,
-              })),
-            }],
-          }),
-        }],
-      },
-    },
+    '', 'Escolha um menu nos botões abaixo.',
+  ].join('\\n');
+  await sendInteractiveButtons(ctx, {
+    text: caption,
+    image: menuImage,
+    buttons: menuButtonsForPage(0),
   });
-  console.log('[menu-debug] etapa 5: conteúdo interativo montado');
-  const interactiveMessage = generateWAMessageFromContent(chatJid, interactiveContent, {
-    userJid: sock.user?.id,
-    quoted: message,
-  });
-  console.log('[menu-debug] etapa 6: iniciando relayMessage');
-  await sock.relayMessage(chatJid, interactiveMessage.message, {
-    messageId: interactiveMessage.key.id,
-    additionalNodes: [{
-      tag: 'biz',
-      attrs: {},
-      content: [{ tag: 'interactive', attrs: { type: 'native_flow', v: '1' } }],
-    }],
-  });
-  console.log('[menu-debug] etapa 7: relayMessage concluiu');
+}
+async function sendMoreMenus(ctx, page = 1) {
+  const text = page === 1
+    ? '💜 NYX BOT • MAIS MENUS\\nEscolha uma categoria:'
+    : '💜 NYX BOT • ÚLTIMOS MENUS\\nEscolha uma categoria:';
+  await sendInteractiveButtons(ctx, { text, buttons: menuButtonsForPage(page) });
 }
 
 async function sendMenuCategory(ctx, categoryId) {
+  if (categoryId === 'mais') return sendMoreMenus(ctx, 1);
+  if (categoryId === 'mais2') return sendMoreMenus(ctx, 2);
   const category = MENU_CATEGORIES.find((item) => item.id === categoryId);
   if (!category) return ctx.reply(`Não reconheci essa categoria. Envie ${config.prefix}menu para abrir a lista novamente.`);
   const body = [
