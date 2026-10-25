@@ -45,7 +45,9 @@ function formatMenuDate(date = new Date()) {
 
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
+  console.log('[menu-debug] etapa 1: iniciou sendMainMenu');
   const menuImage = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
+  console.log('[menu-debug] etapa 2: imagem lida, bytes:', menuImage.length);
   let groupName = isGroup ? 'Grupo (nome indisponível)' : 'Conversa privada';
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
@@ -62,10 +64,12 @@ async function sendMainMenu(ctx) {
     '', 'Abra a lista abaixo e escolha uma categoria.',
   ].join('\n');
   // Envia imagem, texto e seletor dentro de uma única mensagem interativa.
+  console.log('[menu-debug] etapa 3: iniciando upload/preparo da imagem');
   const uploadedImage = await generateWAMessageContent(
     { image: menuImage },
     { upload: sock.waUploadToServer },
   );
+  console.log('[menu-debug] etapa 4: imagem preparada');
   const interactiveContent = proto.Message.fromObject({
     interactiveMessage: {
       header: {
@@ -94,10 +98,12 @@ async function sendMainMenu(ctx) {
       },
     },
   });
+  console.log('[menu-debug] etapa 5: conteúdo interativo montado');
   const interactiveMessage = generateWAMessageFromContent(chatJid, interactiveContent, {
     userJid: sock.user?.id,
     quoted: message,
   });
+  console.log('[menu-debug] etapa 6: iniciando relayMessage');
   await sock.relayMessage(chatJid, interactiveMessage.message, {
     messageId: interactiveMessage.key.id,
     additionalNodes: [{
@@ -106,6 +112,7 @@ async function sendMainMenu(ctx) {
       content: [{ tag: 'interactive', attrs: { type: 'native_flow', v: '1' } }],
     }],
   });
+  console.log('[menu-debug] etapa 7: relayMessage concluiu');
 }
 
 async function sendMenuCategory(ctx, categoryId) {
