@@ -30,11 +30,17 @@ export async function runCommandForTest(context, name, args = []) {
 }
 
 export async function handleMessage(sock, message) {
-  const text = message.message?.conversation
+  const interactiveId = message.message?.listResponseMessage?.singleSelectReply?.selectedRowId
+    ?? message.message?.buttonsResponseMessage?.selectedButtonId
+    ?? message.message?.templateButtonReplyMessage?.selectedId;
+  const isMenuSelection = typeof interactiveId === 'string' && interactiveId.startsWith('nyxmenu:');
+  const text = isMenuSelection ? interactiveId : (
+    message.message?.conversation
     ?? message.message?.extendedTextMessage?.text
     ?? message.message?.imageMessage?.caption
-    ?? message.message?.videoMessage?.caption;
-  if (!text?.startsWith(config.prefix)) return;
+    ?? message.message?.videoMessage?.caption
+  );
+  if (!isMenuSelection && !text?.startsWith(config.prefix)) return;
 
   const senderJid = message.key.fromMe
     ? `${config.ownerNumber}@s.whatsapp.net`
@@ -50,8 +56,11 @@ export async function handleMessage(sock, message) {
   });
   const isOwner = isOfficialOwner || isDelegatedOwner;
   const isGroup = (message.key.remoteJid ?? '').endsWith('@g.us');
-  const args = text.slice(config.prefix.length).trim().split(/\s+/);
-  const name = (args.shift() ?? '').toLowerCase();
+  const commandStartedAt = Date.now();
+  const args = isMenuSelection
+    ? [interactiveId.slice('nyxmenu:'.length)]
+    : text.slice(config.prefix.length).trim().split(/\s+/);
+  const name = isMenuSelection ? 'menu' : (args.shift() ?? '').toLowerCase();
   if (!name) return;
 
   const command = commands.get(name);
@@ -64,14 +73,17 @@ export async function handleMessage(sock, message) {
   const context = {
     sock, message, args, senderJid, senderNumber, isOwner, isOfficialOwner, isGroup,
     chatJid: message.key.remoteJid,
+    commandStartedAt,
     reply: (content, mentions = []) => sock.sendMessage(message.key.remoteJid, { text: String(content), ...(mentions.length ? { mentions } : {}) }, { quoted: message }),
   };
 
-  // React to every recognized command before running it. A failed reaction must not block the command.
-  try {
-    await sock.sendMessage(message.key.remoteJid, { react: { text: '💜', key: message.key } });
-  } catch (error) {
-    console.warn('[command:reaction] Não foi possível reagir à mensagem:', error?.message ?? error);
+  // React to typed commands only; interactive selections should not trigger extra reactions.
+  if (!isMenuSelection) {
+    try {
+      await sock.sendMessage(message.key.remoteJid, { react: { text: '💜', key: message.key } });
+    } catch (error) {
+      console.warn('[command:reaction] Não foi possível reagir à mensagem:', error?.message ?? error);
+    }
   }
 
   if (command.role === 'dono' && !isOwner) {
