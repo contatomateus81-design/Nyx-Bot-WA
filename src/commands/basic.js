@@ -1,7 +1,7 @@
 import { registerCommand } from '../handler.js';
 import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
-import { generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
+import { generateWAMessageContent, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys';
 
 const MENU_CATEGORIES = [
   { id: 'principal', title: '🏠 PRINCIPAL', description: 'Informações e comandos gerais', lines: [
@@ -61,34 +61,48 @@ async function sendMainMenu(ctx) {
     `┃ 🚀 Ping: ${elapsed} ms`, '┃', '╰━━━━━━━━━━━━━━━━━━━━╯',
     '', 'Abra a lista abaixo e escolha uma categoria.',
   ].join('\n');
-  await sock.sendMessage(chatJid, { image: menuImage, caption, mentions: senderJid ? [senderJid] : [] }, { quoted: message });
-  const listContent = proto.Message.fromObject({
-    listMessage: {
-      title: '💜 Menus da Nyx Bot',
-      description: 'Selecione uma categoria para ver os comandos e como utilizá-los.',
-      buttonText: 'Ver categorias',
-      footerText: 'NYX BOT • Menu interativo',
-      listType: proto.Message.ListMessage.ListType.SINGLE_SELECT,
-      sections: [{
-        title: 'Categorias disponíveis',
-        rows: MENU_CATEGORIES.map((category) => ({
-          title: category.title,
-          description: category.description,
-          rowId: `nyxmenu:${category.id}`,
-        })),
-      }],
+  // A imagem é anexada ao cabeçalho da própria mensagem interativa.
+  const uploadedImage = await generateWAMessageContent(
+    { image: menuImage },
+    { upload: sock.waUploadToServer },
+  );
+  const interactiveContent = proto.Message.fromObject({
+    interactiveMessage: {
+      header: {
+        title: '💜 NYX BOT',
+        hasMediaAttachment: true,
+        imageMessage: uploadedImage.imageMessage,
+      },
+      body: { text: caption },
+      footer: { text: 'NYX BOT • Menu interativo' },
+      nativeFlowMessage: {
+        buttons: [{
+          name: 'single_select',
+          buttonParamsJson: JSON.stringify({
+            title: 'Ver categorias',
+            sections: [{
+              title: 'Categorias disponíveis',
+              rows: MENU_CATEGORIES.map((category) => ({
+                title: category.title,
+                description: category.description,
+                id: `nyxmenu:${category.id}`,
+              })),
+            }],
+          }),
+        }],
+      },
     },
   });
-  const listMessage = generateWAMessageFromContent(chatJid, listContent, {
+  const interactiveMessage = generateWAMessageFromContent(chatJid, interactiveContent, {
     userJid: sock.user?.id,
     quoted: message,
   });
-  await sock.relayMessage(chatJid, listMessage.message, {
-    messageId: listMessage.key.id,
+  await sock.relayMessage(chatJid, interactiveMessage.message, {
+    messageId: interactiveMessage.key.id,
     additionalNodes: [{
       tag: 'biz',
       attrs: {},
-      content: [{ tag: 'list', attrs: { type: 'product_list', v: '2' } }],
+      content: [{ tag: 'interactive', attrs: { type: 'native_flow', v: '1' } }],
     }],
   });
 }
