@@ -17,12 +17,13 @@ const MENU_CATEGORIES = [
   { id: 'figurinhas', title: '🖼️ FIGURINHAS', description: 'Criação de figurinhas', lines: [
     ['fig', 'Envie uma imagem com a legenda do comando ou responda a uma imagem.'],
   ] },
-  { id: 'ia', title: '🤖 INTELIGÊNCIA ARTIFICIAL', description: 'Texto para voz e recursos inteligentes', lines: [
+  { id: 'ia', title: '🤖 IA E VOZ', description: 'Texto para voz e recursos inteligentes', lines: [
     ['tts <texto>', 'Converte texto em áudio quando o Piper está configurado.'],
   ] },
   { id: 'ferramentas', title: '🛠️ FERRAMENTAS', description: 'Informações e utilidades', lines: [
-    ['infogrupo', 'Mostra informações do grupo.'], ['link', 'Link de convite do grupo (admin).'],
-    ['nota adicionar|ver|listar|apagar', 'Gerencia notas do grupo.'],
+    ['infogrupo', 'Mostra informações do grupo.'],
+    ['nota adicionar <nome> <texto>', 'Salva uma nota para o grupo.'],
+    ['nota ver <nome> / nota listar / nota apagar <nome>', 'Consulta e gerencia notas do grupo.'],
   ] },
   { id: 'admin', title: '👑 ADMINISTRAÇÃO', description: 'Comandos para administradores', lines: [
     ['totag [mensagem]', 'Marca os participantes.'], ['remover @pessoa', 'Remove um participante.'],
@@ -30,6 +31,7 @@ const MENU_CATEGORIES = [
     ['nomegrupo <nome>', 'Altera o nome do grupo.'], ['descricao <texto>', 'Altera a descrição.'],
     ['fechargrupo / abrirgrupo', 'Restringe ou libera mensagens.'], ['boasvindas 1|0', 'Ativa/desativa boas-vindas.'],
     ['antilink 1|0', 'Ativa/desativa bloqueio de links.'],
+    ['link / revogar', 'Gera ou revoga o convite do grupo.'], ['aviso @pessoa', 'Registra um aviso para um participante.'],
   ] },
 ];
 
