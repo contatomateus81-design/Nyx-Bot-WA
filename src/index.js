@@ -14,6 +14,7 @@ import './commands/sticker.js';
 import './commands/owner.js';
 import './commands/profile.js';
 import './commands/tts.js';
+import './commands/tomp3.js';
 import './commands/status.js';
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
