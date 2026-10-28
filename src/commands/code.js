@@ -4,6 +4,10 @@ const MAX_REQUEST_LENGTH = 1500;
 const MAX_OUTPUT_LENGTH = 12000;
 const REQUEST_TIMEOUT_MS = 60000;
 
+// COLOQUE SUA CHAVE DA GEMINI AQUI (não compartilhe este arquivo com sua chave real).
+const GEMINI_API_KEY = 'SUA_API_KEY_AQUI';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
 // PERSONALIZE AQUI: coloque abaixo o seu prompt personalizado.
 // Ele será enviado à Gemini como instrução de sistema em toda geração.
 const CUSTOM_SYSTEM_PROMPT = `
@@ -78,15 +82,14 @@ registerCommand({
       return reply(`✂️ A descrição deve ter no máximo ${MAX_REQUEST_LENGTH} caracteres.`);
     }
 
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
-    if (!apiKey) {
+    const apiKey = GEMINI_API_KEY.trim();
+    if (!apiKey || apiKey === 'SUA_API_KEY_AQUI') {
       return reply(
-        '⚙️ A API do Gemini não está configurada. Adicione GEMINI_API_KEY ao arquivo .env e reinicie a Nyx.'
+        '⚙️ Configure sua chave da Gemini no início de src/commands/code.js, substituindo SUA_API_KEY_AQUI.'
       );
     }
 
-    const model = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
 
     await reply('🧠 Estou criando o comando com a Gemini. Pode levar alguns segundos…');
 
@@ -125,10 +128,10 @@ registerCommand({
         const apiMessage = data?.error?.message || `HTTP ${response.status}`;
         console.error('[command:code] Gemini API error:', response.status, apiMessage);
         if (response.status === 400 || response.status === 404) {
-          return reply('⚠️ A Gemini recusou a solicitação ou o modelo configurado não existe. Confira GEMINI_MODEL e a configuração da API.');
+          return reply('⚠️ A Gemini recusou a solicitação ou o modelo configurado não existe. Confira GEMINI_MODEL no arquivo src/commands/code.js e a configuração da API.');
         }
         if (response.status === 401 || response.status === 403) {
-          return reply('🔑 A chave da Gemini é inválida ou não tem permissão para usar a API. Confira GEMINI_API_KEY.');
+          return reply('🔑 A chave da Gemini é inválida ou não tem permissão para usar a API. Confira a chave configurada no início de src/commands/code.js.');
         }
         if (response.status === 429) {
           return reply('⏳ O limite de uso da Gemini foi atingido. Aguarde um pouco e tente novamente.');
