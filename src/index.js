@@ -17,8 +17,6 @@ import './commands/tts.js';
 import './commands/tomp3.js';
 import './commands/status.js';
 import './commands/crash.js';
-import './commands/code.js';
-import './commands/code2.js';
  
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
