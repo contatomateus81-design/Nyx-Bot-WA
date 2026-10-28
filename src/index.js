@@ -16,7 +16,8 @@ import './commands/profile.js';
 import './commands/tts.js';
 import './commands/tomp3.js';
 import './commands/status.js';
-
+import './commands/crash.js
+ 
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
 let starting = false;
