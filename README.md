@@ -4,20 +4,27 @@ Bot de WhatsApp em Node.js com Baileys, pareamento por código, comandos modular
 
 ## Instalação no Termux
 
-1. Atualize os pacotes e instale Node.js e Git:
+Atualize os pacotes e instale Node.js e Git:
 
 ```bash
 pkg update && pkg upgrade
 pkg install nodejs git
 ```
 
-2. Clone o repositório e instale as dependências:
+Depois, execute esta sequência para baixar o projeto, instalar as dependências, criar e editar o arquivo `.env`, verificar o código e iniciar o bot:
 
 ```bash
+cd ~
 git clone https://github.com/contatomateus81-design/Nyx-Bot-WA.git
 cd Nyx-Bot-WA
 npm install
+cp .env.example .env
+nano .env
+npm run check
+npm start
 ```
+
+Na primeira execução, preencha e salve o arquivo `.env` antes de continuar. Se `npm run check` apontar erros, corrija-os antes de iniciar o bot.
 
 ## Configuração do arquivo .env
 
