@@ -83,13 +83,13 @@ function makeProgressBar(percent) {
 }
 
 function makePlayerCaption(info, senderJid) {
-  const title = String(info.title ?? 'Áudio').replace(/[\\r\\n]+/g, ' ').slice(0, 180);
+  const title = String(info.title ?? 'Áudio').replace(/[\r\n]+/g, ' ').slice(0, 180);
   const duration = formatDuration(info.duration);
   const elapsed = Number.isFinite(info.duration) ? Math.floor(info.duration * 0.72) : 0;
   const volume = 4 + Math.floor(Math.random() * 6);
   const volumeBar = '▮'.repeat(volume) + '▯'.repeat(9 - volume);
   const author = senderJid.split('@')[0].split(':')[0];
-  return `🎵 *${title}*\\n🔊 ━━━━━━━━●━━━━ ${formatDuration(elapsed)} / ${duration}\\nᴠᴏʟᴜᴍᴇ : ${volumeBar}\\n↻　◁　Ⅱ　▷　↺\\n\\n👤 Pedido por: @${author}`;
+  return `🎵 *${title}*\n🔊 ━━━━━━━━●━━━━ ${formatDuration(elapsed)} / ${duration}\nᴠᴏʟᴜᴍᴇ : ${volumeBar}\n↻　◁　Ⅱ　▷　↺\n\n👤 Pedido por: @${author}`;
 }
 
 function downloadWithProgress(args, onProgress) {
@@ -103,10 +103,10 @@ function downloadWithProgress(args, onProgress) {
     child.stderr.setEncoding('utf8');
     child.stdout.on('data', (chunk) => {
       buffer += chunk;
-      const lines = buffer.split(/\\r?\\n/);
+      const lines = buffer.split(/\r?\n/);
       buffer = lines.pop() ?? '';
       for (const line of lines) {
-        const match = line.match(/NYX_PROGRESS:(\\d+(?:\\.\\d+)?)/);
+        const match = line.match(/NYX_PROGRESS:(\d+(?:\.\d+)?)/);
         if (match) onProgress(Number(match[1]));
       }
     });
@@ -182,7 +182,7 @@ registerCommand({
       if (!downloadTarget) return reply('😿 Não consegui identificar o link do resultado. Tente enviar o link diretamente.');
 
       const progressMessage = await sock.sendMessage(chatJid, {
-        text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(0)} 0%`
+        text: `💜 Baixando áudio...\n💜 Progresso: ${makeProgressBar(0)} 0%`
       }, { quoted: message });
       let lastProgress = -1;
       let lastEditAt = 0;
@@ -194,7 +194,7 @@ registerCommand({
         lastEditAt = now;
         try {
           await sock.sendMessage(chatJid, {
-            text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`
+            text: `💜 Baixando áudio...\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`
           }, { edit: progressMessage.key });
         } catch (error) {
           console.warn('[command:play] Falha ao editar progresso:', error?.message ?? error);
@@ -211,7 +211,7 @@ registerCommand({
 
       try {
         await sock.sendMessage(chatJid, {
-          text: `💜 Download concluído!\\n💜 Progresso: ${makeProgressBar(100)} 100%`
+          text: `💜 Download concluído!\n💜 Progresso: ${makeProgressBar(100)} 100%`
         }, { edit: progressMessage.key });
       } catch (error) {
         console.warn('[command:play] Falha ao finalizar progresso:', error?.message ?? error);
@@ -229,10 +229,10 @@ registerCommand({
       }
 
       const audio = await readFile(downloadedPath);
-      const title = String(info.title ?? 'Áudio').replace(/[\\r\\n]+/g, ' ').slice(0, 180);
+      const title = String(info.title ?? 'Áudio').replace(/[\r\n]+/g, ' ').slice(0, 180);
       const filename = `${title.replace(/[\\\\/:*?"<>|]/g, '_').trim() || 'audio'}.mp3`;
       const thumbnailPath = files
-        .filter((file) => file.startsWith(`${id}.`) && /\\.(jpg|jpeg|png|webp)$/i.test(file))
+        .filter((file) => file.startsWith(`${id}.`) && /\.(jpg|jpeg|png|webp)$/i.test(file))
         .map((file) => join(TEMP_DIR, file))[0];
       const caption = makePlayerCaption(info, senderJid);
 
