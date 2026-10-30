@@ -1,6 +1,6 @@
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, readdir, rm, stat } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { isIP } from 'node:net';
@@ -76,6 +76,59 @@ function formatDuration(seconds) {
   return `${minutes}:${String(remainder).padStart(2, '0')}`;
 }
 
+
+function makeProgressBar(percent) {
+  const filled = Math.max(0, Math.min(10, Math.floor(percent / 10)));
+  return '█'.repeat(filled) + '▒'.repeat(10 - filled);
+}
+
+function makePlayerCaption(info, senderJid) {
+  const title = String(info.title ?? 'Áudio').replace(/[\\r\\n]+/g, ' ').slice(0, 180);
+  const duration = formatDuration(info.duration);
+  const elapsed = Number.isFinite(info.duration) ? Math.floor(info.duration * 0.72) : 0;
+  const volume = 4 + Math.floor(Math.random() * 6);
+  const volumeBar = '▮'.repeat(volume) + '▯'.repeat(9 - volume);
+  const author = senderJid.split('@')[0].split(':')[0];
+  return `🎵 *${title}*\\n🔊 ━━━━━━━━●━━━━ ${formatDuration(elapsed)} / ${duration}\\nᴠᴏʟᴜᴍᴇ : ${volumeBar}\\n↻　◁　Ⅱ　▷　↺\\n\\n👤 Pedido por: @${author}`;
+}
+
+function downloadWithProgress(args, onProgress) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn('yt-dlp', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stderr = '';
+    let buffer = '';
+    let settled = false;
+    const timeout = setTimeout(() => child.kill('SIGTERM'), COMMAND_TIMEOUT_MS);
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+      buffer += chunk;
+      const lines = buffer.split(/\\r?\\n/);
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        const match = line.match(/NYX_PROGRESS:(\\d+(?:\\.\\d+)?)/);
+        if (match) onProgress(Number(match[1]));
+      }
+    });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      if (!settled) { settled = true; rejectPromise(error); }
+    });
+    child.on('close', (code) => {
+      clearTimeout(timeout);
+      if (settled) return;
+      settled = true;
+      if (code === 0) resolvePromise();
+      else {
+        const error = new Error(`yt-dlp exited with code ${code}`);
+        error.stderr = stderr;
+        rejectPromise(error);
+      }
+    });
+  });
+}
+
 function cleanError(error) {
   const detail = String(error?.stderr ?? error?.message ?? '');
   if (/ENOENT|not found|não foi possível encontrar/i.test(detail)) {
@@ -128,22 +181,41 @@ registerCommand({
       const downloadTarget = isUrl ? target : (info.webpage_url ?? info.original_url);
       if (!downloadTarget) return reply('😿 Não consegui identificar o link do resultado. Tente enviar o link diretamente.');
 
-      await execFileAsync(
-        'yt-dlp',
-        [
-          '--extract-audio',
-          '--audio-format', 'mp3',
-          '--audio-quality', '5',
-          '--no-playlist',
-          '--no-warnings',
-          '--no-progress',
-          '--socket-timeout', '15',
-          '--max-filesize', '15M',
-          '--output', outputTemplate,
-          downloadTarget
-        ],
-        { timeout: COMMAND_TIMEOUT_MS, maxBuffer: 8 * 1024 * 1024 }
-      );
+      const progressMessage = await sock.sendMessage(chatJid, {
+        text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(0)} 0%`
+      }, { quoted: message });
+      let lastProgress = -1;
+      let lastEditAt = 0;
+      const updateProgress = async (value) => {
+        const percent = Math.max(0, Math.min(99, Math.floor(value)));
+        const now = Date.now();
+        if (percent === lastProgress || now - lastEditAt < 900) return;
+        lastProgress = percent;
+        lastEditAt = now;
+        try {
+          await sock.sendMessage(chatJid, {
+            text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`
+          }, { edit: progressMessage.key });
+        } catch (error) {
+          console.warn('[command:play] Falha ao editar progresso:', error?.message ?? error);
+        }
+      };
+
+      await downloadWithProgress([
+        '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '5',
+        '--write-thumbnail', '--convert-thumbnails', 'jpg',
+        '--newline', '--progress-template', 'download:NYX_PROGRESS:%(progress._percent)s',
+        '--no-playlist', '--no-warnings', '--socket-timeout', '15',
+        '--max-filesize', '15M', '--output', outputTemplate, downloadTarget
+      ], (percent) => { void updateProgress(percent); });
+
+      try {
+        await sock.sendMessage(chatJid, {
+          text: `💜 Download concluído!\\n💜 Progresso: ${makeProgressBar(100)} 100%`
+        }, { edit: progressMessage.key });
+      } catch (error) {
+        console.warn('[command:play] Falha ao finalizar progresso:', error?.message ?? error);
+      }
 
       const files = await readdir(TEMP_DIR);
       downloadedPath = files
@@ -156,23 +228,34 @@ registerCommand({
         throw new Error('max-filesize: arquivo maior que o limite de envio');
       }
 
-      const audio = await import('node:fs/promises').then(({ readFile }) => readFile(downloadedPath));
-      const title = String(info.title ?? 'Áudio').replace(/[\r\n]+/g, ' ').slice(0, 180);
-      const duration = formatDuration(info.duration);
-      const platform = getPlatform(info);
-      const filename = `${title.replace(/[\\/:*?"<>|]/g, '_').trim() || 'audio'}.mp3`;
+      const audio = await readFile(downloadedPath);
+      const title = String(info.title ?? 'Áudio').replace(/[\\r\\n]+/g, ' ').slice(0, 180);
+      const filename = `${title.replace(/[\\\\/:*?"<>|]/g, '_').trim() || 'audio'}.mp3`;
+      const thumbnailPath = files
+        .filter((file) => file.startsWith(`${id}.`) && /\\.(jpg|jpeg|png|webp)$/i.test(file))
+        .map((file) => join(TEMP_DIR, file))[0];
+      const caption = makePlayerCaption(info, senderJid);
 
+      if (thumbnailPath) {
+        await sock.sendMessage(chatJid, {
+          image: await readFile(thumbnailPath),
+          caption,
+          mentions: [senderJid]
+        }, { quoted: message });
+      } else {
+        await sock.sendMessage(chatJid, {
+          text: caption,
+          mentions: [senderJid]
+        }, { quoted: message });
+      }
+
+      // Envia o áudio somente depois da capa e das informações.
       await sock.sendMessage(chatJid, {
         audio,
         mimetype: 'audio/mpeg',
         fileName: filename,
         ptt: false
       }, { quoted: message });
-
-      await sock.sendMessage(chatJid, {
-        text: `🎵 *${title}*\n⏱️ Duração: ${duration}\n🌐 Plataforma: ${platform}\n🙋 Pedido por: @${senderJid.split('@')[0].split(':')[0]}`,
-        mentions: [senderJid]
-      });
     } catch (error) {
       console.error('[command:play]', error?.stderr ?? error?.message ?? error);
       await reply(`😿 ${cleanError(error)}`);
