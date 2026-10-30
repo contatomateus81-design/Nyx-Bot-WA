@@ -79,7 +79,7 @@ registerCommand({ name: 'x9', role: 'admin', async execute(ctx) {
   const arg = String(ctx.args[0] ?? '').toLowerCase();
   if (!['1', '0'].includes(arg)) {
     const current = await getGroup(g.jid);
-    return ctx.reply(`💜 X9 está ${current.x9 ? 'ativado' : 'desativado'} neste grupo.\\nUse ${config.prefix}x9 1 para ativar ou ${config.prefix}x9 0 para desativar.`);
+    return ctx.reply(`💜 X9 está ${current.x9 ? 'ativado' : 'desativado'} neste grupo.\nUse ${config.prefix}x9 1 para ativar ou ${config.prefix}x9 0 para desativar.`);
   }
   const on = arg === '1';
   await updateGroup(g.jid, { x9: on });
