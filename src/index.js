@@ -161,7 +161,8 @@ async function startBot() {
      hasMessage: Boolean(message.message),
      remoteJidType: message.key?.remoteJid?.endsWith('@g.us') ? 'group' : 'private-or-other',
     });
-    try { await handleX9Message(sock, message); } catch (error) { console.error('[x9]', error?.message ?? error); }\n    if (message.key?.participant && message.pushName) rememberContact(message.key.participant, message.pushName);
+    try { await handleX9Message(sock, message); } catch (error) { console.error('[x9]', error?.message ?? error); }
+    if (message.key?.participant && message.pushName) rememberContact(message.key.participant, message.pushName);
     else if (message.key?.remoteJid && !message.key.remoteJid.endsWith('@g.us') && message.pushName) rememberContact(message.key.remoteJid, message.pushName);
     if (!message.message) {
      console.warn('[messages.upsert] Mensagem sem conteúdo descriptografado; ignorando por enquanto.');
