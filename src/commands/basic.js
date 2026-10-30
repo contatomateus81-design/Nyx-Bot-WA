@@ -30,7 +30,8 @@ const MENU_CATEGORIES = [
     ['promover @pessoa', 'Promove um participante.'], ['rebaixar @pessoa', 'Rebaixa um administrador.'],
     ['nomegrupo <nome>', 'Altera o nome do grupo.'], ['descricao <texto>', 'Altera a descrição.'],
     ['fechargrupo / abrirgrupo', 'Restringe ou libera mensagens.'], ['boasvindas 1|0', 'Ativa/desativa boas-vindas.'],
-    ['antilink 1|0', 'Ativa/desativa bloqueio de links.'],\n    ['x9 1|0', 'Reenvia texto excluído em até 10 minutos.'],
+    ['antilink 1|0', 'Ativa/desativa bloqueio de links.'],
+    ['x9 1|0', 'Reenvia texto excluído em até 10 minutos.'],
     ['link / revogar', 'Gera ou revoga o convite do grupo.'], ['aviso @pessoa', 'Registra um aviso para um participante.'],
   ] },
 ];
