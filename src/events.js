@@ -111,10 +111,16 @@ export async function handleX9Message(sock, message) {
   }
   x9Messages.delete(originalCacheKey);
   try {
-   const author = saved.authorJid;
+   let author = saved.authorJid;
+   if (String(author).endsWith('@lid')) {
+    try {
+     const mapped = await sock?.signalRepository?.lidMapping?.getPNForLID?.(author);
+     if (typeof mapped === 'string' && mapped.endsWith('@s.whatsapp.net')) author = mapped;
+    } catch {}
+   }
    await sock.sendMessage(jid, {
-    text: '💜 *NYX BOT — X9*\\n👤 *Autor:* @' + author.split('@')[0].split(':')[0] +
-      '\\n📝 *Conteúdo:* ' + saved.text + '\\n🔎 _Mensagem excluída._',
+    text: '💜 *NYX BOT — X9*\n👤 *Autor:* @' + author.split('@')[0].split(':')[0] +
+      '\n📝 *Conteúdo:* ' + saved.text + '\n🔎 _Mensagem excluída._',
     mentions: [author],
    });
   } catch (error) {
