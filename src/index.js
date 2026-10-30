@@ -5,7 +5,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { config, validateConfig } from './config.js';
 import { handleMessage } from './handler.js';
-import { handleGroupMessage, handleParticipantsUpdate, rememberContact } from './events.js';
+import { handleGroupMessage, handleParticipantsUpdate, handleX9Message, rememberContact } from './events.js';
 import './commands/basic.js';
 import './commands/group.js';
 import './commands/fun.js';
@@ -161,7 +161,7 @@ async function startBot() {
      hasMessage: Boolean(message.message),
      remoteJidType: message.key?.remoteJid?.endsWith('@g.us') ? 'group' : 'private-or-other',
     });
-    if (message.key?.participant && message.pushName) rememberContact(message.key.participant, message.pushName);
+    try { await handleX9Message(sock, message); } catch (error) { console.error('[x9]', error?.message ?? error); }\n    if (message.key?.participant && message.pushName) rememberContact(message.key.participant, message.pushName);
     else if (message.key?.remoteJid && !message.key.remoteJid.endsWith('@g.us') && message.pushName) rememberContact(message.key.remoteJid, message.pushName);
     if (!message.message) {
      console.warn('[messages.upsert] Mensagem sem conteúdo descriptografado; ignorando por enquanto.');
