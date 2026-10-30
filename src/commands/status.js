@@ -79,7 +79,7 @@ registerCommand({
     const toolsStatus = [
       `FFmpeg: ${ffmpegAvailable ? '🟢 Disponível' : '🔴 Indisponível'}`,
       `Piper/TTS: ${piperStatus}`,
-    ].join('\\n│ ');
+    ].join('\n│ ');
 
     await reply(
       `╭───「 💜 ${config.name.toUpperCase()} • STATUS 」───╮
