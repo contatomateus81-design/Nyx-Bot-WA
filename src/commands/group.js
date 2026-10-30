@@ -72,6 +72,20 @@ for (const [name, aliases, setting, success] of [
   await ctx.reply(success);
 }});
 
+
+registerCommand({ name: 'x9', role: 'admin', async execute(ctx) {
+  const g = await getGroupContext(ctx.sock, ctx.message, ctx.senderJid);
+  if (!g.isSenderAdmin && !ctx.isOwner) throw new Error('Somente administradores.');
+  const arg = String(ctx.args[0] ?? '').toLowerCase();
+  if (!['1', '0'].includes(arg)) {
+    const current = await getGroup(g.jid);
+    return ctx.reply(`💜 X9 está ${current.x9 ? 'ativado' : 'desativado'} neste grupo.\\nUse ${config.prefix}x9 1 para ativar ou ${config.prefix}x9 0 para desativar.`);
+  }
+  const on = arg === '1';
+  await updateGroup(g.jid, { x9: on });
+  return ctx.reply(`💜 X9 ${on ? 'ativado' : 'desativado'} neste grupo. ${on ? 'Mensagens de texto excluídas em até 10 minutos poderão ser reenviadas.' : ''}`.trim());
+}});
+
 registerCommand({ name: 'boasvindas', aliases: ['welcome'], role: 'admin', async execute(ctx) {
   const g = await getGroupContext(ctx.sock, ctx.message, ctx.senderJid);
   if (!g.isSenderAdmin && !ctx.isOwner) throw new Error('Somente administradores.');
