@@ -30,7 +30,7 @@ const MENU_CATEGORIES = [
     ['promover @pessoa', 'Promove um participante.'], ['rebaixar @pessoa', 'Rebaixa um administrador.'],
     ['nomegrupo <nome>', 'Altera o nome do grupo.'], ['descricao <texto>', 'Altera a descrição.'],
     ['fechargrupo / abrirgrupo', 'Restringe ou libera mensagens.'], ['boasvindas 1|0', 'Ativa/desativa boas-vindas.'],
-    ['antilink 1|0', 'Ativa/desativa bloqueio de links.'],
+    ['antilink 1|0', 'Ativa/desativa bloqueio de links.'],\n    ['x9 1|0', 'Reenvia texto excluído em até 10 minutos.'],
     ['link / revogar', 'Gera ou revoga o convite do grupo.'], ['aviso @pessoa', 'Registra um aviso para um participante.'],
   ] },
 ];
@@ -44,7 +44,16 @@ function formatMenuDate(date = new Date()) {
 
 async function sendMainMenu(ctx) {
   const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
-  const username = `@${senderJid.split('@')[0].split(':')[0]}`;
+  let actualSenderJid = senderJid;
+  if (String(actualSenderJid).endsWith('@lid')) {
+    try {
+      const mapped = await sock?.signalRepository?.lidMapping?.getPNForLID?.(actualSenderJid);
+      if (typeof mapped === 'string' && mapped.endsWith('@s.whatsapp.net')) actualSenderJid = mapped;
+    } catch (error) {
+      console.warn('[menu] Não foi possível resolver o LID do remetente:', error?.message ?? error);
+    }
+  }
+  const username = `@${actualSenderJid.split('@')[0].split(':')[0]}`;
   let groupName = isGroup ? 'Grupo (nome indisponível)' : 'PV';
   if (isGroup) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
@@ -83,6 +92,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}fechargrupo / abrirgrupo`,
     `│ ${config.prefix}boasvindas 1|0 (on|off)`,
     `│ ${config.prefix}antilink 1|0 (on|off)`,
+    `│ ${config.prefix}x9 1|0 — X9 de mensagens excluídas`,
     `│ ${config.prefix}nota adicionar|ver|listar|apagar`,
     `│ ${config.prefix}aviso — advertir membro`,
     '',
@@ -93,7 +103,7 @@ async function sendMainMenu(ctx) {
   ].join('\n');
 
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
-  await sock.sendMessage(chatJid, { image, caption: menuText, mentions: [senderJid] }, { quoted: message });
+  await sock.sendMessage(chatJid, { image, caption: menuText, mentions: [actualSenderJid] }, { quoted: message });
 }
 async function sendMenuCategory(ctx, categoryId) {
   const category = MENU_CATEGORIES.find((item) => item.id === categoryId);
