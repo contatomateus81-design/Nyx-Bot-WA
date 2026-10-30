@@ -92,6 +92,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}fechargrupo / abrirgrupo`,
     `│ ${config.prefix}boasvindas 1|0 (on|off)`,
     `│ ${config.prefix}antilink 1|0 (on|off)`,
+    `│ ${config.prefix}x9 1|0 — X9 de mensagens excluídas`,
     `│ ${config.prefix}nota adicionar|ver|listar|apagar`,
     `│ ${config.prefix}aviso — advertir membro`,
     '',
