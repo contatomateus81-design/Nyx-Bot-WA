@@ -65,3 +65,75 @@ export async function handleParticipantsUpdate(sock, update) {
   await triggerWelcomeTest(sock, update.id, participant);
  }
 }
+
+
+const X9_TTL_MS = 10 * 60 * 1000;
+const x9Messages = new Map();
+
+function unwrapMessage(message) {
+ let content = message?.message ?? {};
+ for (let i = 0; i < 4; i++) {
+  const next = content.ephemeralMessage?.message
+   ?? content.viewOnceMessage?.message
+   ?? content.viewOnceMessageV2?.message
+   ?? content.documentWithCaptionMessage?.message;
+  if (!next) break;
+  content = next;
+ }
+ return content;
+}
+
+function getPlainText(message) {
+ const content = unwrapMessage(message);
+ const value = content.conversation ?? content.extendedTextMessage?.text;
+ return typeof value === 'string' ? value.trim() : '';
+}
+
+export async function handleX9Message(sock, message) {
+ const key = message?.key;
+ const jid = key?.remoteJid;
+ if (!jid?.endsWith('@g.us') || !key?.id) return;
+ const settings = await getGroup(jid);
+ const cacheKey = jid + ':' + key.id;
+ const protocol = unwrapMessage(message).protocolMessage;
+ const isRevoke = protocol?.type ===  revokeType();
+ if (isRevoke) {
+  if (!settings.x9) return;
+  const originalKey = protocol.key;
+  if (!originalKey?.id) return;
+  const originalJid = originalKey.remoteJid || jid;
+  if (originalJid !== jid) return;
+  const originalCacheKey = jid + ':' + originalKey.id;
+  const saved = x9Messages.get(originalCacheKey);
+  if (!saved || Date.now() - saved.createdAt > X9_TTL_MS) {
+   x9Messages.delete(originalCacheKey);
+   return;
+  }
+  x9Messages.delete(originalCacheKey);
+  try {
+   const author = saved.authorJid;
+   await sock.sendMessage(jid, {
+    text: '💜 *NYX BOT — X9*\\n👤 *Autor:* @' + author.split('@')[0].split(':')[0] +
+      '\\n📝 *Conteúdo:* ' + saved.text + '\\n🔎 _Mensagem excluída._',
+    mentions: [author],
+   });
+  } catch (error) {
+   console.error('[x9] Não foi possível reenviar a mensagem:', error?.message ?? error);
+  }
+  return;
+ }
+ if (!settings.x9 || key.fromMe) return;
+ const text = getPlainText(message);
+ if (!text || !key.id) return;
+ const authorJid = key.participant || '';
+ if (!authorJid) return;
+ x9Messages.set(cacheKey, { text, authorJid, createdAt: Date.now() });
+ const timer = setTimeout(() => {
+  const current = x9Messages.get(cacheKey);
+  if (current && current.createdAt + X9_TTL_MS <= Date.now()) x9Messages.delete(cacheKey);
+ }, X9_TTL_MS + 50);
+ timer.unref?.();
+}
+
+// Baileys ProtocolMessageType.REVOKE is 0; keep compatible with numeric enum values.
+function revokeType() { return 0; }
