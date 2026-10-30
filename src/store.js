@@ -16,7 +16,7 @@ async function persist() {
   writeQueue = writeQueue.then(async () => { await writeFile(temp, JSON.stringify(data, null, 2), 'utf8'); await rename(temp, filePath); });
   return writeQueue;
 }
-export async function getGroup(jid) { const data = await load(); return data.groups[jid] ??= { welcome: false, antiLink: false, antiSpam: false, muted: [] }; }
+export async function getGroup(jid) { const data = await load(); return data.groups[jid] ??= { welcome: false, antiLink: false, antiSpam: false, x9: false, muted: [] }; }
 export async function updateGroup(jid, patch) { const group = await getGroup(jid); Object.assign(group, patch); await persist(); return group; }
 export async function getUser(jid) { const data = await load(); return data.users[jid] ??= { warnings: 0 }; }
 export async function updateUser(jid, patch) { const user = await getUser(jid); Object.assign(user, patch); await persist(); return user; }
