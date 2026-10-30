@@ -182,7 +182,7 @@ registerCommand({
       if (!downloadTarget) return reply('😿 Não consegui identificar o link do resultado. Tente enviar o link diretamente.');
 
       const progressMessage = await sock.sendMessage(chatJid, {
-        text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(0)} 0%`
+        text: `💜 Progresso: ${makeProgressBar(0)} 0%`
       }, { quoted: message });
 
       let lastProgress = 0;
@@ -192,7 +192,7 @@ registerCommand({
         try {
           // Edita a mensagem original; não cria uma nova mensagem de progresso.
           await sock.sendMessage(chatJid, {
-            text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`,
+            text: `💜 Progresso: ${makeProgressBar(percent)} ${percent}%`,
             edit: progressMessage.key
           });
         } catch (error) {
@@ -228,7 +228,7 @@ registerCommand({
 
       try {
         await sock.sendMessage(chatJid, {
-          text: `💜 Download concluído!\\n💜 Progresso: ${makeProgressBar(100)} 100%`,
+          text: `💜 Progresso: ${makeProgressBar(100)} 100%`,
           edit: progressMessage.key
         });
       } catch (error) {
