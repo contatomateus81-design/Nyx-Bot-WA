@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "check": "node --check src/index.js && node --check src/config.js && node --check src/handler.js && node --check src/store.js && node --check src/utils.js && node --check src/events.js && node --check src/commands/basic.js && node --check src/commands/group.js && node --check src/commands/fun.js && node --check src/commands/play.js && node --check src/commands/owner.js && node --check src/commands/sticker.js && node --check src/commands/profile.js && node --check src/commands/tts.js && node --check src/commands/tomp3.js && node --check src/commands/status.js && node --check src/welcome/render.js"
+    "check": "node --check src/index.js && node --check src/config.js && node --check src/handler.js && node --check src/store.js && node --check src/utils.js && node --check src/events.js && node --check src/commands/basic.js && node --check src/commands/group.js && node --check src/commands/fun.js && node --check src/commands/play.js && node --check src/commands/owner.js && node --check src/commands/sticker.js && node --check src/commands/profile.js && node --check src/commands/tts.js && node --check src/commands/tomp3.js && node --check src/commands/status.js && node --check src/welcome/render.js && node --check src/commands/crash.js"
   },
   "engines": {
     "node": ">=20.0.0"
