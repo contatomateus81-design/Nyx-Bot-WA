@@ -182,36 +182,52 @@ registerCommand({
       if (!downloadTarget) return reply('😿 Não consegui identificar o link do resultado. Tente enviar o link diretamente.');
 
       const progressMessage = await sock.sendMessage(chatJid, {
-        text: `💜 Baixando áudio...\n💜 Progresso: ${makeProgressBar(0)} 0%`
+        text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(0)} 0%`
       }, { quoted: message });
-      let lastProgress = -1;
-      let lastEditAt = 0;
-      const updateProgress = async (value) => {
-        const percent = Math.max(0, Math.min(99, Math.floor(value)));
-        const now = Date.now();
-        if (percent === lastProgress || now - lastEditAt < 900) return;
+
+      let lastProgress = 0;
+      const updateProgress = async (percent) => {
+        if (percent <= lastProgress) return;
         lastProgress = percent;
-        lastEditAt = now;
         try {
+          // Edita a mensagem original; não cria uma nova mensagem de progresso.
           await sock.sendMessage(chatJid, {
-            text: `💜 Baixando áudio...\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`
+            text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`
           }, { edit: progressMessage.key });
         } catch (error) {
           console.warn('[command:play] Falha ao editar progresso:', error?.message ?? error);
         }
       };
 
-      await downloadWithProgress([
+      const downloadPromise = downloadWithProgress([
         '--extract-audio', '--audio-format', 'mp3', '--audio-quality', '5',
         '--write-thumbnail', '--convert-thumbnails', 'jpg',
-        '--newline', '--progress-template', 'download:NYX_PROGRESS:%(progress._percent)s',
-        '--no-playlist', '--no-warnings', '--socket-timeout', '15',
+        '--newline', '--no-playlist', '--no-warnings', '--socket-timeout', '15',
         '--max-filesize', '15M', '--output', outputTemplate, downloadTarget
-      ], (percent) => { void updateProgress(percent); });
+      ], () => {}).then(
+        () => ({ ok: true }),
+        (error) => ({ ok: false, error })
+      );
+
+      // Progresso ilustrativo e gradual, independente da porcentagem real do yt-dlp.
+      for (const percent of [10, 30, 50, 80, 99]) {
+        const result = await Promise.race([
+          downloadPromise,
+          new Promise((resolvePromise) => setTimeout(() => resolvePromise(null), 2200))
+        ]);
+        if (result) {
+          if (!result.ok) throw result.error;
+          break;
+        }
+        await updateProgress(percent);
+      }
+
+      const downloadResult = await downloadPromise;
+      if (!downloadResult.ok) throw downloadResult.error;
 
       try {
         await sock.sendMessage(chatJid, {
-          text: `💜 Download concluído!\n💜 Progresso: ${makeProgressBar(100)} 100%`
+          text: `💜 Download concluído!\\n💜 Progresso: ${makeProgressBar(100)} 100%`
         }, { edit: progressMessage.key });
       } catch (error) {
         console.warn('[command:play] Falha ao finalizar progresso:', error?.message ?? error);
