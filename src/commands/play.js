@@ -192,8 +192,9 @@ registerCommand({
         try {
           // Edita a mensagem original; não cria uma nova mensagem de progresso.
           await sock.sendMessage(chatJid, {
-            text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`
-          }, { edit: progressMessage.key });
+            text: `💜 Baixando áudio...\\n💜 Progresso: ${makeProgressBar(percent)} ${percent}%`,
+            edit: progressMessage.key
+          });
         } catch (error) {
           console.warn('[command:play] Falha ao editar progresso:', error?.message ?? error);
         }
@@ -227,8 +228,9 @@ registerCommand({
 
       try {
         await sock.sendMessage(chatJid, {
-          text: `💜 Download concluído!\\n💜 Progresso: ${makeProgressBar(100)} 100%`
-        }, { edit: progressMessage.key });
+          text: `💜 Download concluído!\\n💜 Progresso: ${makeProgressBar(100)} 100%`,
+          edit: progressMessage.key
+        });
       } catch (error) {
         console.warn('[command:play] Falha ao finalizar progresso:', error?.message ?? error);
       }
