@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 const filePath = 'data/store.json';
 let cache;
 let writeQueue = Promise.resolve();
-const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [] };
+const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [] };
 async function load() {
   if (cache) return cache;
   await mkdir(dirname(filePath), { recursive: true });
@@ -86,4 +86,36 @@ export async function clearAgendaEvents() {
   data.agendaEvents = [];
   await persist();
   return count;
+}
+
+
+// Persist a bounded window of message IDs to prevent replayed WhatsApp events.
+const MAX_PROCESSED_MESSAGE_IDS = 500;
+const PRUNE_PROCESSED_MESSAGE_IDS = 100;
+let messageClaimQueue = Promise.resolve();
+
+export function claimProcessedMessage(remoteJid, messageId) {
+  const operation = messageClaimQueue.then(async () => {
+    const chat = String(remoteJid ?? '').trim();
+    const id = String(messageId ?? '').trim();
+    if (!chat || !id) return true;
+
+    const data = await load();
+    if (!Array.isArray(data.processedMessageIds)) data.processedMessageIds = [];
+
+    const key = chat + ':' + id;
+    if (data.processedMessageIds.includes(key)) return false;
+
+    data.processedMessageIds.push(key);
+    if (data.processedMessageIds.length > MAX_PROCESSED_MESSAGE_IDS) {
+      data.processedMessageIds.splice(0, PRUNE_PROCESSED_MESSAGE_IDS);
+    }
+
+    await persist();
+    return true;
+  });
+
+  // Keep the queue usable after an individual persistence error.
+  messageClaimQueue = operation.catch(() => {});
+  return operation;
 }
