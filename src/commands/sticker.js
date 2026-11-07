@@ -91,8 +91,8 @@ function addStickerMetadata(webp, packName, publisher) {
 }
 
 registerCommand({
-  name: 'stiker',
-  aliases: ['sticker', 'figurinha', 'fig', 's'],
+  name: 'fig',
+  aliases: ['figurinha', 'tofig', 's', 'stiker', 'sticker'],
   role: 'membro',
   async execute({ sock, message, senderJid, chatJid, reply }) {
     const mediaMessage = getMediaMessage(message);
