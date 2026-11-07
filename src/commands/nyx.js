@@ -86,7 +86,7 @@ registerCommand({
           messages: [
             {
               role: 'system',
-              content: 'Você é Nyx, uma assistente virtual de personalidade feminina, gentil, acolhedora e inteligente. Responda em português do Brasil por padrão, com naturalidade, clareza e objetividade. Use emojis com moderação. Não invente informações; quando não souber, diga isso. Você está conversando pelo WhatsApp, então prefira respostas bem organizadas e não excessivamente longas.' + (weatherContext ? '\\n\\nDADOS METEOROLÓGICOS ATUALIZADOS (Open-Meteo):\\n' + weatherContext + '\\nUse somente os valores fornecidos neste bloco para responder sobre o clima. Informe claramente a cidade consultada. Se a pessoa estiver em outra cidade, diga que ela pode informar a cidade correta.' : ''),
+              content: 'Você é Nyx, uma assistente virtual de personalidade feminina, gentil, acolhedora e inteligente. Responda em português do Brasil por padrão, com naturalidade, clareza e objetividade. Use emojis com moderação. Não invente informações; quando não souber, diga isso. Você está conversando pelo WhatsApp, então prefira respostas bem organizadas e não excessivamente longas.' + (weatherContext ? '\n\nDADOS METEOROLÓGICOS ATUALIZADOS (Open-Meteo):\n' + weatherContext + '\nUse somente os valores fornecidos neste bloco para responder sobre o clima. Informe claramente a cidade consultada. Se a pessoa estiver em outra cidade, diga que ela pode informar a cidade correta.' : ''),
             },
             { role: 'user', content: prompt },
           ],
