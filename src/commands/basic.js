@@ -98,7 +98,7 @@ async function sendMenu(ctx, commandName, title, commandNames) {
     '╰━━━━━━━━━━━━━━━━━━━━╯',
     '',
     `📋 Para voltar, envie ${config.prefix}menu.`,
-  ].join('\\n');
+  ].join('\n');
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
   await ctx.sock.sendMessage(ctx.chatJid, {
     image, caption, mentions: [header.actualSenderJid],
@@ -123,7 +123,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}bola8`,
     '╰━━━━━━━━━━━━━━━━━━━━╯',
   ];
-  const caption = [header.text, '', ...sections].join('\\n');
+  const caption = [header.text, '', ...sections].join('\n');
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
   await ctx.sock.sendMessage(ctx.chatJid, {
     image, caption, mentions: [header.actualSenderJid],
@@ -133,7 +133,7 @@ async function sendMainMenu(ctx) {
 async function sendInfo(ctx) {
   const requestedName = String(ctx.args[0] ?? '').trim();
   if (!requestedName) {
-    return ctx.reply(`💜 Informe o comando que deseja consultar.\\nExemplo: ${config.prefix}info play`);
+    return ctx.reply(`💜 Informe o comando que deseja consultar.\nExemplo: ${config.prefix}info play`);
   }
   const command = getRegisteredCommand(requestedName);
   if (!command) {
@@ -152,7 +152,7 @@ async function sendInfo(ctx) {
     `📌 *Como usar:* ${config.prefix}${usage}`,
     ...(aliases.length ? ['', '*Também pode ser usado com:*', ...aliases.map((alias) => `${config.prefix}${alias}`)] : []),
   ];
-  await ctx.reply(lines.join('\\n'));
+  await ctx.reply(lines.join('\n'));
 }
 
 async function sendRegistryMenu(ctx, { commandName, role, title }) {
