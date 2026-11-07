@@ -193,14 +193,14 @@ async function sendOwnerMenu(ctx) {
     const commands = group.commands.filter((name) => available.has(name));
     if (!commands.length) continue;
     lines.push(`│ ${group.label}`);
-    lines.push(...commands.map((name) => `││ }${name}`));
+    lines.push(...commands.map((name) => `││ ${config.prefix}${name}`));
   }
 
   const general = names
     .filter((name) => !grouped.has(name))
     .sort((a, b) => a.localeCompare(b, 'pt-BR'));
   if (general.length) {
-    lines.push(...general.map((name) => `│ }${name}`));
+    lines.push(...general.map((name) => `│ ${config.prefix}${name}`));
   }
 
   const header = await getMenuHeader(ctx, commandName);
