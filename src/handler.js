@@ -51,10 +51,8 @@ export async function handleMessage(sock, message) {
   const isOwner = isOfficialOwner || isDelegatedOwner;
   const isGroup = (message.key.remoteJid ?? '').endsWith('@g.us');
   const commandStartedAt = Date.now();
-  const args = isMenuSelection
-    ? [interactiveId.slice('nyxmenu:'.length)]
-    : text.slice(config.prefix.length).trim().split(/\s+/);
-  const name = isMenuSelection ? 'menu' : (args.shift() ?? '').toLowerCase();
+  const args = text.slice(config.prefix.length).trim().split(/\s+/);
+  const name = (args.shift() ?? '').toLowerCase();
   if (!name) return;
 
   const command = commands.get(name);
@@ -71,13 +69,10 @@ export async function handleMessage(sock, message) {
     reply: (content, mentions = []) => sock.sendMessage(message.key.remoteJid, { text: String(content), ...(mentions.length ? { mentions } : {}) }, { quoted: message }),
   };
 
-  // React to typed commands only; interactive selections should not trigger extra reactions.
-  if (!isMenuSelection) {
-    try {
-      await sock.sendMessage(message.key.remoteJid, { react: { text: '💜', key: message.key } });
-    } catch (error) {
-      console.warn('[command:reaction] Não foi possível reagir à mensagem:', error?.message ?? error);
-    }
+  try {
+    await sock.sendMessage(message.key.remoteJid, { react: { text: '💜', key: message.key } });
+  } catch (error) {
+    console.warn('[command:reaction] Não foi possível reagir à mensagem:', error?.message ?? error);
   }
 
   if (command.role === 'dono' && !isOwner) {
