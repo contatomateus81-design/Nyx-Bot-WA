@@ -20,7 +20,7 @@ import './commands/tomp3.js';
 import './commands/status.js';
 import './commands/crash.js';
 import './commands/agenda.js';
-import './commands/nyx.js';
+import './commands/nyx.js';\nimport './commands/access.js';
  
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
