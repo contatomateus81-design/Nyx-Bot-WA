@@ -150,20 +150,14 @@ export async function registerAccessRequest(number) {
   if (registry.blocked.includes(normalized)) return { status: 'blocked' };
   if (registry.pending.includes(normalized)) return { status: 'pending' };
   if (registry.denied.includes(normalized)) {
+    registry.denied = registry.denied.filter(item => item !== normalized);
     registry.pending.push(normalized);
     await persist();
     return { status: 'pending' };
   }
-  const wasKnown = registry.authorized.includes(normalized)
-    || registry.pending.includes(normalized)
-    || registry.blocked.includes(normalized)
-    || registry.denied.includes(normalized);
-  if (!wasKnown) {
-    registry.authorized.push(normalized);
-    await persist();
-    return { status: 'authorized_new' };
-  }
-  return { status: 'pending' };
+  registry.authorized.push(normalized);
+  await persist();
+  return { status: 'authorized_new' };
 }
 
 export async function setAccessStatus(number, status) {
