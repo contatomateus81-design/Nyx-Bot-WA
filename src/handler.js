@@ -7,6 +7,12 @@ export function getRegisteredCommandCount() {
   return new Set(commands.values()).size;
 }
 
+export function getRegisteredCommands(role) {
+  return [...new Set(commands.values())]
+    .filter((command) => command.role === role)
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+
 export function registerCommand(command) {
   if (!command?.name || typeof command.execute !== 'function') {
     throw new TypeError('Comando inválido: informe name e execute().');
