@@ -212,7 +212,7 @@ async function sendOwnerMenu(ctx) {
     '╰━━━━━━━━━━━━━━━━━━━━╯',
     '',
     `📋 Para voltar, envie ${config.prefix}menu.`,
-  ].join('\\n');
+  ].join('\n');
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
   await ctx.sock.sendMessage(ctx.chatJid, {
     image, caption, mentions: [header.actualSenderJid],
