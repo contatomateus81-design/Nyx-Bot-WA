@@ -23,7 +23,7 @@ export function startAgendaScheduler(sock) {
               : `Começa em aproximadamente ${remainingMinutes} minutos!`;
             try {
               await sock.sendMessage(event.chatJid, {
-                text: `🔔 *LEMBRETE DE EVENTO*\\n\\n📅 ${event.name}\\n⏰ ${reminderText}\\n🗓️ ${new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(event.timestamp))}`,
+                text: `🔔 *LEMBRETE DE EVENTO*\n\n📅 ${event.name}\n⏰ ${reminderText}\n🗓️ ${new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(event.timestamp))}`,
               });
               await updateAgendaEvent(event.id, { reminderSent: true });
             } catch (error) {
@@ -35,7 +35,7 @@ export function startAgendaScheduler(sock) {
         if (!event.eventSent && now >= event.timestamp) {
           try {
             await sock.sendMessage(event.chatJid, {
-              text: `📣 *O EVENTO COMEÇA AGORA!*\\n\\n📅 ${event.name}\\n⏰ Chegou o horário marcado.\\n🗓️ ${new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(event.timestamp))}`,
+              text: `📣 *O EVENTO COMEÇA AGORA!*\n\n📅 ${event.name}\n⏰ Chegou o horário marcado.\n🗓️ ${new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }).format(new Date(event.timestamp))}`,
             });
             await updateAgendaEvent(event.id, { eventSent: true });
           } catch (error) {
