@@ -5,6 +5,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { config, validateConfig } from './config.js';
 import { handleMessage } from './handler.js';
+import { startAgendaScheduler } from './agenda.js';
 import { handleGroupMessage, handleParticipantsUpdate, handleX9Message, rememberContact } from './events.js';
 import './commands/basic.js';
 import './commands/group.js';
@@ -17,6 +18,7 @@ import './commands/tts.js';
 import './commands/tomp3.js';
 import './commands/status.js';
 import './commands/crash.js';
+import './commands/agenda.js';
  
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
@@ -134,7 +136,10 @@ async function startBot() {
     // Give the WebSocket a moment to establish before requesting a pairing code.
     setTimeout(() => { void requestPairingCode(); }, 2500);
    }
-   if (connection === 'open') console.log(`✅ ${config.name} conectado ao WhatsApp.`);
+   if (connection === 'open') {
+    console.log(`✅ ${config.name} conectado ao WhatsApp.`);
+    startAgendaScheduler(sock);
+   }
    if (connection === 'close') {
     connectionClosed = true;
     const statusCode = lastDisconnect?.error?.output?.statusCode;
