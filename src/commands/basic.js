@@ -160,6 +160,8 @@ async function sendRegistryMenu(ctx, { commandName, role, title }) {
     .filter((command) => command.name !== commandName)
     .map((command) => command.name);
   if (role === 'admin') names.unshift('infogrupo');
+  if (role === 'dono' && !names.includes('agenda-criar')) names.push('agenda-criar');
+  names.sort((a, b) => a.localeCompare(b, 'pt-BR'));
   await sendMenu(ctx, commandName, title, names);
 }
 
