@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 const filePath = 'data/store.json';
 let cache;
 let writeQueue = Promise.resolve();
-const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [] };
+const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [], accessControl: { authorized: [], pending: [], blocked: [], denied: [] } };
 async function load() {
   if (cache) return cache;
   await mkdir(dirname(filePath), { recursive: true });
@@ -118,4 +118,75 @@ export function claimProcessedMessage(remoteJid, messageId) {
   // Keep the queue usable after an individual persistence error.
   messageClaimQueue = operation.catch(() => {});
   return operation;
+}
+
+
+// Access registry: first-time registrations are automatic; removed users require approval.
+function normalizeAccessNumber(value = '') {
+  return String(value).replace(/\D/g, '');
+}
+
+export async function getAccessRegistry() {
+  const data = await load();
+  if (!data.accessControl || typeof data.accessControl !== 'object') {
+    data.accessControl = { authorized: [], pending: [], blocked: [], denied: [] };
+  }
+  for (const key of ['authorized', 'pending', 'blocked', 'denied']) {
+    if (!Array.isArray(data.accessControl[key])) data.accessControl[key] = [];
+  }
+  return structuredClone(data.accessControl);
+}
+
+export async function registerAccessRequest(number) {
+  const normalized = normalizeAccessNumber(number);
+  if (!normalized) return { status: 'invalid' };
+  const data = await load();
+  data.accessControl ??= { authorized: [], pending: [], blocked: [], denied: [] };
+  const registry = data.accessControl;
+  for (const key of ['authorized', 'pending', 'blocked', 'denied']) {
+    if (!Array.isArray(registry[key])) registry[key] = [];
+  }
+  if (registry.authorized.includes(normalized)) return { status: 'authorized' };
+  if (registry.blocked.includes(normalized)) return { status: 'blocked' };
+  if (registry.pending.includes(normalized)) return { status: 'pending' };
+  if (registry.denied.includes(normalized)) {
+    registry.pending.push(normalized);
+    await persist();
+    return { status: 'pending' };
+  }
+  const wasKnown = registry.authorized.includes(normalized)
+    || registry.pending.includes(normalized)
+    || registry.blocked.includes(normalized)
+    || registry.denied.includes(normalized);
+  if (!wasKnown) {
+    registry.authorized.push(normalized);
+    await persist();
+    return { status: 'authorized_new' };
+  }
+  return { status: 'pending' };
+}
+
+export async function setAccessStatus(number, status) {
+  const normalized = normalizeAccessNumber(number);
+  const allowed = ['authorized', 'pending', 'blocked', 'denied'];
+  if (!normalized || !allowed.includes(status)) return false;
+  const data = await load();
+  data.accessControl ??= { authorized: [], pending: [], blocked: [], denied: [] };
+  const registry = data.accessControl;
+  for (const key of allowed) {
+    if (!Array.isArray(registry[key])) registry[key] = [];
+    registry[key] = registry[key].filter(item => item !== normalized);
+  }
+  registry[status].push(normalized);
+  await persist();
+  return true;
+}
+
+export async function getAccessStatus(number) {
+  const normalized = normalizeAccessNumber(number);
+  const registry = await getAccessRegistry();
+  for (const status of ['authorized', 'pending', 'blocked', 'denied']) {
+    if (registry[status].includes(normalized)) return status;
+  }
+  return 'new';
 }
