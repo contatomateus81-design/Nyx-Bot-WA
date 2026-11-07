@@ -35,9 +35,6 @@ function getMessageText(message) {
   ?? content.videoMessage?.caption
   ?? content.documentMessage?.caption
   ?? content.documentWithCaptionMessage?.message?.documentMessage?.caption
-  ?? content.buttonsResponseMessage?.selectedDisplayText
-  ?? content.listResponseMessage?.title
-  ?? content.templateButtonReplyMessage?.selectedDisplayText
   ?? '';
 }
 
