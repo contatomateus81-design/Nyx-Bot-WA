@@ -25,6 +25,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
 let starting = false;
 let pairingNumber;
+let connectionOpenedAt = 0;
 
 const groupNameCache = new Map();
 
@@ -100,6 +101,7 @@ async function startBot() {
   }
   let version;
   try { ({ version } = await fetchLatestBaileysVersion()); } catch (error) { logger.warn({ err:error }, 'Could not fetch latest WhatsApp version'); }
+  connectionOpenedAt = 0;
   const sock = makeWASocket({
    auth: state,
    logger,
@@ -135,6 +137,7 @@ async function startBot() {
     setTimeout(() => { void requestPairingCode(); }, 2500);
    }
    if (connection === 'open') {
+    connectionOpenedAt = Math.floor(Date.now() / 1000);
     console.log(`✅ ${config.name} conectado ao WhatsApp.`);
     startAgendaScheduler(sock);
    }
@@ -157,6 +160,13 @@ async function startBot() {
   });
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
    for (const message of messages) {
+    // Ignore messages created before this WhatsApp connection became active.
+    // Baileys can replay queued messages after reconnecting; process only fresh ones.
+    const messageTimestamp = Number(message.messageTimestamp);
+    if (!connectionOpenedAt || !Number.isFinite(messageTimestamp) || messageTimestamp < connectionOpenedAt) {
+     console.log('[messages.upsert] Mensagem anterior à conexão atual; ignorando.');
+     continue;
+    }
     // Diagnostic: log event metadata even when Baileys has no decrypted message body.
     console.log('[messages.upsert]', {
      type,
