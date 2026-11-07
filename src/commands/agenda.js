@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { registerCommand } from '../handler.js';
 import { config } from '../config.js';
 import { addAgendaEvent, clearAgendaEvents, listAgendaEvents } from '../store.js';
+import { getGroupContext } from '../utils.js';
 
 const TIME_ZONE = 'America/Sao_Paulo';
 
@@ -25,8 +26,13 @@ function formatDate(timestamp) {
 
 registerCommand({
   name: 'agenda-criar',
-  role: 'membro',
+  role: 'admin',
   async execute(ctx) {
+    if (!ctx.isOwner) {
+      if (!ctx.isGroup) return ctx.reply('🔒 Este comando é exclusivo dos administradores de grupos e dos donos do bot.');
+      const group = await getGroupContext(ctx.sock, ctx.message, ctx.senderJid);
+      if (!group.isSenderAdmin) return ctx.reply('🔒 Somente administradores deste grupo ou donos do bot podem criar eventos.');
+    }
     const [dateText, timeText, ...nameParts] = ctx.args;
     const name = nameParts.join(' ').trim();
     const date = parseDateTime(dateText, timeText);
