@@ -65,7 +65,20 @@ export async function handleMessage(sock, message) {
   const name = (args.shift() ?? '').toLowerCase();
   if (!name) return;
 
-  const command = commands.get(name);\n  const isRegistrationCommand = ['cadastrar', 'logar'].includes(name);\n  if (!isOwner && !isRegistrationCommand) {\n    const accessStatus = await getAccessStatus(senderNumber);\n    if (accessStatus !== 'authorized') return;\n  }\n  if (!isOwner && isRegistrationCommand) {\n    const registration = await registerAccessRequest(senderNumber);\n    if (registration.status === 'authorized_new') return sock.sendMessage(message.key.remoteJid, { text: '💜 Cadastro realizado! Você já pode usar os comandos da Nyx.' }, { quoted: message });\n    if (registration.status === 'authorized') return sock.sendMessage(message.key.remoteJid, { text: 'ℹ️ Seu número já está cadastrado e autorizado.' }, { quoted: message });\n    if (registration.status === 'pending') return sock.sendMessage(message.key.remoteJid, { text: '⏳ Sua solicitação de acesso está aguardando autorização do proprietário.' }, { quoted: message });\n    if (registration.status === 'blocked') return;\n    return;\n  }
+  const command = commands.get(name);
+  const isRegistrationCommand = ['cadastrar', 'logar'].includes(name);
+  if (!isOwner && !isRegistrationCommand) {
+    const accessStatus = await getAccessStatus(senderNumber);
+    if (accessStatus !== 'authorized') return;
+  }
+  if (!isOwner && isRegistrationCommand) {
+    const registration = await registerAccessRequest(senderNumber);
+    if (registration.status === 'authorized_new') return sock.sendMessage(message.key.remoteJid, { text: '💜 Cadastro realizado! Você já pode usar os comandos da Nyx.' }, { quoted: message });
+    if (registration.status === 'authorized') return sock.sendMessage(message.key.remoteJid, { text: 'ℹ️ Seu número já está cadastrado e autorizado.' }, { quoted: message });
+    if (registration.status === 'pending') return sock.sendMessage(message.key.remoteJid, { text: '⏳ Sua solicitação de acesso está aguardando autorização do proprietário.' }, { quoted: message });
+    if (registration.status === 'blocked') return;
+    return;
+  }
   if (!command) {
     return sock.sendMessage(message.key.remoteJid, {
       text: `❌ Este comando não existe.\n📋 Por favor, utilize ${config.prefix}menu para ver a lista de comandos disponíveis.`,
