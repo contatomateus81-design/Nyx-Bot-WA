@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 const filePath = 'data/store.json';
 let cache;
 let writeQueue = Promise.resolve();
-const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [], accessControl: { authorized: [], pending: [], blocked: [], denied: [] } };
+const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [], weatherLocations: {}, accessControl: { authorized: [], pending: [], blocked: [], denied: [] } };
 async function load() {
   if (cache) return cache;
   await mkdir(dirname(filePath), { recursive: true });
@@ -183,4 +183,25 @@ export async function getAccessStatus(number) {
     if (registry[status].includes(normalized)) return status;
   }
   return 'new';
+}
+
+
+// Preferred weather city, stored independently for each WhatsApp number.
+export async function getWeatherLocation(number) {
+  const normalized = normalizeAccessNumber(number);
+  if (!normalized) return null;
+  const data = await load();
+  if (!data.weatherLocations || typeof data.weatherLocations !== 'object') data.weatherLocations = {};
+  return data.weatherLocations[normalized] ?? null;
+}
+
+export async function setWeatherLocation(number, location) {
+  const normalized = normalizeAccessNumber(number);
+  const city = String(location ?? '').trim();
+  if (!normalized || !city) return false;
+  const data = await load();
+  if (!data.weatherLocations || typeof data.weatherLocations !== 'object') data.weatherLocations = {};
+  data.weatherLocations[normalized] = city;
+  await persist();
+  return true;
 }
