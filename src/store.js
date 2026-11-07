@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 const filePath = 'data/store.json';
 let cache;
 let writeQueue = Promise.resolve();
-const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [] };
+const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [] };
 async function load() {
   if (cache) return cache;
   await mkdir(dirname(filePath), { recursive: true });
@@ -54,4 +54,36 @@ export async function removeDelegatedOwner(jid) {
   const [removed] = data.delegatedOwners.splice(index, 1);
   await persist();
   return { removed: true, removedJid: removed, owners: [...data.delegatedOwners] };
+}
+
+export async function listAgendaEvents() {
+  const data = await load();
+  if (!Array.isArray(data.agendaEvents)) data.agendaEvents = [];
+  return [...data.agendaEvents].sort((a, b) => a.timestamp - b.timestamp);
+}
+
+export async function addAgendaEvent(event) {
+  const data = await load();
+  if (!Array.isArray(data.agendaEvents)) data.agendaEvents = [];
+  data.agendaEvents.push(event);
+  await persist();
+  return event;
+}
+
+export async function updateAgendaEvent(id, patch) {
+  const data = await load();
+  if (!Array.isArray(data.agendaEvents)) data.agendaEvents = [];
+  const event = data.agendaEvents.find((item) => item.id === id);
+  if (!event) return false;
+  Object.assign(event, patch);
+  await persist();
+  return true;
+}
+
+export async function clearAgendaEvents() {
+  const data = await load();
+  const count = Array.isArray(data.agendaEvents) ? data.agendaEvents.length : 0;
+  data.agendaEvents = [];
+  await persist();
+  return count;
 }
