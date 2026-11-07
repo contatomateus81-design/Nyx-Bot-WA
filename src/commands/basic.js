@@ -34,12 +34,12 @@ async function getMenuHeader(ctx, commandName) {
       `👤 Usuário: ${username}`,
       `⚡ Comando: ${config.prefix}${commandName}`,
       `📅 Data/Hora: ${formatMenuDate()}`,
-      `👥 Grupo: ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 70)}`,
+      `👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 70)}`,
       `🚀 Ping: ${elapsed} ms`,
       `🔰 Prefixo: ${config.prefix}`,
       '',
       '╰━━━━━━━━━━━━━━━━━━━━╯',
-    ].join('\\n'),
+    ].join('\n'),
   };
 }
 
@@ -69,7 +69,7 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}escolher A | B`,
     `│ ${config.prefix}bola8 pergunta`,
     '╰━━━━━━━━━━━━━━━━━━━━╯',
-  ].join('\\n');
+  ].join('\n');
 
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
   await ctx.sock.sendMessage(ctx.chatJid, {
@@ -109,7 +109,7 @@ const OWNER_DESCRIPTIONS = {
 
 async function sendRegistryMenu(ctx, { commandName, role, title, descriptions, extraLines = [] }) {
   const header = await getMenuHeader(ctx, commandName);
-  const commands = getRegisteredCommands(role);
+  const commands = getRegisteredCommands(role).filter((command) => command.name !== commandName);
   const lines = commands.map((command) => {
     const aliases = command.aliases?.length ? ` (atalhos: ${command.aliases.map((alias) => config.prefix + alias).join(', ')})` : '';
     const description = descriptions[command.name] || command.description || 'Comando registrado.';
@@ -124,7 +124,7 @@ async function sendRegistryMenu(ctx, { commandName, role, title, descriptions, e
     '╰━━━━━━━━━━━━━━━━━━━━╯',
     '',
     `📋 Para voltar, envie ${config.prefix}menu.`,
-  ].join('\\n');
+  ].join('\n');
   await ctx.sock.sendMessage(ctx.chatJid, {
     text: body,
     ...(role === 'dono' ? { mentions: [header.actualSenderJid] } : {}),
@@ -150,7 +150,7 @@ registerCommand({
       role: 'admin',
       title: '👥 MENU ADMIN',
       descriptions: ADMIN_DESCRIPTIONS,
-      extraLines: ['Comandos de administração de grupos'],
+      extraLines: [`${config.prefix}infogrupo — Mostrar informações do grupo.`, 'Comandos de administração de grupos'],
     });
   },
 });
@@ -190,7 +190,7 @@ registerCommand({
       'FN:Criador Oficial do Nyx Bot',
       'TEL;type=CELL;type=VOICE;waid=555481296959:+555481296959',
       'END:VCARD',
-    ].join('\\n');
+    ].join('\n');
     await sock.sendMessage(
       chatJid,
       { contacts: { displayName: 'Criador Oficial do Nyx Bot', contacts: [{ vcard }] } },
