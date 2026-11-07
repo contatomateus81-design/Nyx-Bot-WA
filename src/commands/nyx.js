@@ -13,7 +13,7 @@ registerCommand({
   async execute(ctx) {
     const prompt = ctx.args.join(' ').trim();
     if (!prompt) {
-      return ctx.reply('💜 Olá! Sou a Nyx. Escreva o que deseja conversar comigo.\nExemplo: !nyx O que você pode fazer?');
+      return ctx.reply(`💜 Olá! Sou a Nyx. Escreva o que deseja conversar comigo.\nExemplo: ${config.prefix}nyx O que você pode fazer?`);
     }
     if (prompt.length > MAX_INPUT_LENGTH) {
       return ctx.reply(`⚠️ Sua mensagem é muito longa. O limite é de ${MAX_INPUT_LENGTH} caracteres.`);
