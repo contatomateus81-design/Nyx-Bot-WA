@@ -1,40 +1,6 @@
-import { registerCommand } from '../handler.js';
+import { registerCommand, getRegisteredCommands } from '../handler.js';
 import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
-
-const MENU_CATEGORIES = [
-  { id: 'principal', title: '🏠 PRINCIPAL', description: 'Informações e comandos gerais', lines: [
-    ['ping', 'Testa a resposta da Nyx.'], ['tempo', 'Mostra há quanto tempo o bot está ligado.'],
-    ['sobre', 'Conheça o Nyx Bot.'], ['dono', 'Contato do criador.'], ['status', 'Diagnóstico do bot.'],
-  ] },
-  { id: 'downloads', title: '🎵 DOWNLOADS', description: 'Músicas e áudio', lines: [
-    ['play <nome ou link>', 'Pesquisa e baixa áudio compatível.'],
-  ] },
-  { id: 'brincadeiras', title: '🎮 BRINCADEIRAS', description: 'Comandos divertidos', lines: [
-    ['escolher opção A | opção B', 'Escolhe entre opções.'], ['bola8 <pergunta>', 'Responde de forma divertida.'],
-    ['perfil [@pessoa]', 'Gera uma ficha recreativa.'],
-  ] },
-  { id: 'figurinhas', title: '🖼️ FIGURINHAS', description: 'Criação de figurinhas', lines: [
-    ['fig', 'Envie uma imagem com a legenda do comando ou responda a uma imagem.'],
-  ] },
-  { id: 'ia', title: '🤖 IA E VOZ', description: 'Texto para voz e recursos inteligentes', lines: [
-    ['tts <texto>', 'Converte texto em áudio quando o Piper está configurado.'],
-  ] },
-  { id: 'ferramentas', title: '🛠️ FERRAMENTAS', description: 'Informações e utilidades', lines: [
-    ['infogrupo', 'Mostra informações do grupo.'],
-    ['nota adicionar <nome> <texto>', 'Salva uma nota para o grupo.'],
-    ['nota ver <nome> / nota listar / nota apagar <nome>', 'Consulta e gerencia notas do grupo.'],
-  ] },
-  { id: 'admin', title: '👑 ADMINISTRAÇÃO', description: 'Comandos para administradores', lines: [
-    ['totag [mensagem]', 'Marca os participantes.'], ['remover @pessoa', 'Remove um participante.'],
-    ['promover @pessoa', 'Promove um participante.'], ['rebaixar @pessoa', 'Rebaixa um administrador.'],
-    ['nomegrupo <nome>', 'Altera o nome do grupo.'], ['descricao <texto>', 'Altera a descrição.'],
-    ['fechargrupo / abrirgrupo', 'Restringe ou libera mensagens.'], ['boasvindas 1|0', 'Ativa/desativa boas-vindas.'],
-    ['antilink 1|0', 'Ativa/desativa bloqueio de links.'],
-    ['x9 1|0', 'Reenvia texto excluído em até 10 minutos.'],
-    ['link / revogar', 'Gera ou revoga o convite do grupo.'], ['aviso @pessoa', 'Registra um aviso para um participante.'],
-  ] },
-];
 
 function formatMenuDate(date = new Date()) {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -43,8 +9,8 @@ function formatMenuDate(date = new Date()) {
   }).format(date);
 }
 
-async function sendMainMenu(ctx) {
-  const { sock, chatJid, message, senderJid, isGroup, commandStartedAt } = ctx;
+async function getMenuHeader(ctx, commandName) {
+  const { sock, chatJid, senderJid, isGroup, commandStartedAt } = ctx;
   let actualSenderJid = senderJid;
   if (String(actualSenderJid).endsWith('@lid')) {
     try {
@@ -60,16 +26,32 @@ async function sendMainMenu(ctx) {
     try { groupName = (await sock.groupMetadata(chatJid)).subject || groupName; } catch {}
   }
   const elapsed = Math.max(0, Date.now() - (commandStartedAt ?? Date.now()));
+  return {
+    actualSenderJid,
+    text: [
+      '╭━━━〔 💜 NYX BOT 〕━━━╮',
+      '',
+      `👤 Usuário: ${username}`,
+      `⚡ Comando: ${config.prefix}${commandName}`,
+      `📅 Data/Hora: ${formatMenuDate()}`,
+      `👥 Grupo: ${String(groupName).replace(/[\\r\\n]+/g, ' ').slice(0, 70)}`,
+      `🚀 Ping: ${elapsed} ms`,
+      `🔰 Prefixo: ${config.prefix}`,
+      '',
+      '╰━━━━━━━━━━━━━━━━━━━━╯',
+    ].join('\\n'),
+  };
+}
+
+async function sendMainMenu(ctx) {
+  const header = await getMenuHeader(ctx, 'menu');
   const menuText = [
-    '╭━━━〔 💜 NYX BOT 〕━━━╮',
+    header.text,
     '',
-    `👤 Usuário: ${username}`,
-    `⚡ Comando: ${config.prefix}menu`,
-    `📅 Data/Hora: ${formatMenuDate()}`,
-    `👥 Grupo: ${String(groupName).replace(/[\r\n]+/g, ' ').slice(0, 70)}`,
-    `🚀 Ping: ${elapsed} ms`,
-    `🔰 Prefixo: ${config.prefix}`,
-    '',
+    '╭━━━〔 📋 MENU 📋 〕━━━╮',
+    `│ ${config.prefix}menu`,
+    `│ ${config.prefix}menuadm`,
+    `│ ${config.prefix}menudono`,
     '╰━━━━━━━━━━━━━━━━━━━━╯',
     '',
     '╭━━━〔 ✨ GERAL 〕━━━╮',
@@ -83,40 +65,70 @@ async function sendMainMenu(ctx) {
     `│ ${config.prefix}fig — criar figurinha de imagem`,
     `│ ${config.prefix}perfil [@pessoa] — ficha divertida`,
     '',
-    '╭━━━〔 👥 GRUPO (admin) 〕━━━╮',
-    `│ ${config.prefix}infogrupo — informações`,
-    `│ ${config.prefix}totag — marcar todos`,
-    `│ ${config.prefix}remover — remover membro`,
-    `│ ${config.prefix}promover / rebaixar`,
-    `│ ${config.prefix}link / revogar — convite`,
-    `│ ${config.prefix}nomegrupo / descricao`,
-    `│ ${config.prefix}fechargrupo / abrirgrupo`,
-    `│ ${config.prefix}boasvindas 1|0 (on|off)`,
-    `│ ${config.prefix}antilink 1|0 (on|off)`,
-    `│ ${config.prefix}x9 1|0 — X9 de mensagens excluídas`,
-    `│ ${config.prefix}nota adicionar|ver|listar|apagar`,
-    `│ ${config.prefix}aviso — advertir membro`,
-    '',
     '╭━━━〔 🎲 DIVERSÃO 〕━━━╮',
     `│ ${config.prefix}escolher A | B`,
     `│ ${config.prefix}bola8 pergunta`,
     '╰━━━━━━━━━━━━━━━━━━━━╯',
-  ].join('\n');
+  ].join('\\n');
 
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
-  await sock.sendMessage(chatJid, { image, caption: menuText, mentions: [actualSenderJid] }, { quoted: message });
+  await ctx.sock.sendMessage(ctx.chatJid, {
+    image, caption: menuText, mentions: [header.actualSenderJid],
+  }, { quoted: ctx.message });
 }
-async function sendMenuCategory(ctx, categoryId) {
-  const category = MENU_CATEGORIES.find((item) => item.id === categoryId);
-  if (!category) return ctx.reply(`Não reconheci essa categoria. Envie ${config.prefix}menu para abrir a lista novamente.`);
+
+const ADMIN_DESCRIPTIONS = {
+  infogrupo: 'Mostrar informações do grupo.',
+  totag: 'Marcar todos os participantes.',
+  remover: 'Remover um participante.',
+  promover: 'Promover um participante a administrador.',
+  rebaixar: 'Remover o cargo de administrador.',
+  link: 'Gerar o convite do grupo.',
+  revogar: 'Revogar o convite atual.',
+  nomegrupo: 'Alterar o nome do grupo.',
+  descricao: 'Alterar a descrição do grupo.',
+  fechargrupo: 'Permitir mensagens somente de administradores.',
+  abrirgrupo: 'Liberar mensagens para todos.',
+  boasvindas: 'Ativar ou desativar as boas-vindas.',
+  antilink: 'Ativar ou desativar o anti-link.',
+  x9: 'Ativar ou desativar o registro de mensagens excluídas.',
+  nota: 'Adicionar, consultar, listar ou apagar notas.',
+  aviso: 'Advertir um participante.',
+};
+
+const OWNER_DESCRIPTIONS = {
+  'agenda-lista': 'Listar os eventos futuros de todas as conversas.',
+  'agenda-limpar': 'Apagar todos os eventos da agenda.',
+  adddono: 'Conceder poderes de dono adicional (somente dono oficial).',
+  deldono: 'Remover poderes de dono adicional (somente dono oficial).',
+  say: 'Enviar uma mensagem pelo bot.',
+  chatid: 'Mostrar o ID deste chat.',
+  botname: 'Mostrar o nome configurado para o bot.',
+  test: 'Testar um evento ou executar um comando de teste.',
+};
+
+async function sendRegistryMenu(ctx, { commandName, role, title, descriptions, extraLines = [] }) {
+  const header = await getMenuHeader(ctx, commandName);
+  const commands = getRegisteredCommands(role);
+  const lines = commands.map((command) => {
+    const aliases = command.aliases?.length ? ` (atalhos: ${command.aliases.map((alias) => config.prefix + alias).join(', ')})` : '';
+    const description = descriptions[command.name] || command.description || 'Comando registrado.';
+    return `│ ${config.prefix}${command.name}${aliases} — ${description}`;
+  });
   const body = [
-    `╭━━━〔 ${category.title} 〕━━━╮`, '┃',
-    ...category.lines.flatMap(([syntax, description]) => [
-      `┃ ✦ ${config.prefix}${syntax}`, `┃   ${description}`, '┃',
-    ]),
-    '╰━━━━━━━━━━━━━━━━━━━━╯', '', `📋 Para voltar às categorias, envie ${config.prefix}menu.`,
-  ].join('\n');
-  await ctx.sock.sendMessage(ctx.chatJid, { text: body }, { quoted: ctx.message });
+    header.text,
+    '',
+    `╭━━━〔 ${title} 〕━━━╮`,
+    ...extraLines.map((line) => `│ ${line}`),
+    ...lines,
+    '╰━━━━━━━━━━━━━━━━━━━━╯',
+    '',
+    `📋 Para voltar, envie ${config.prefix}menu.`,
+  ].join('\\n');
+  await ctx.sock.sendMessage(ctx.chatJid, {
+    text: body,
+    ...(role === 'dono' ? { mentions: [header.actualSenderJid] } : {}),
+  }, { quoted: ctx.message });
 }
 
 registerCommand({
@@ -124,15 +136,37 @@ registerCommand({
   aliases: ['help', 'ajuda'],
   role: 'membro',
   async execute(ctx) {
-    if (ctx.args?.[0]) {
-      const requested = String(ctx.args[0]).toLowerCase();
-      const numericIndex = /^\d+$/.test(requested) ? Number(requested) - 1 : -1;
-      const categoryId = numericIndex >= 0 && numericIndex < MENU_CATEGORIES.length
-        ? MENU_CATEGORIES[numericIndex].id
-        : requested;
-      return sendMenuCategory(ctx, categoryId);
-    }
     await sendMainMenu(ctx);
+  },
+});
+
+registerCommand({
+  name: 'menuadm',
+  aliases: ['menu-admin'],
+  role: 'membro',
+  async execute(ctx) {
+    await sendRegistryMenu(ctx, {
+      commandName: 'menuadm',
+      role: 'admin',
+      title: '👥 MENU ADMIN',
+      descriptions: ADMIN_DESCRIPTIONS,
+      extraLines: ['Comandos de administração de grupos'],
+    });
+  },
+});
+
+registerCommand({
+  name: 'menudono',
+  aliases: ['menu-dono'],
+  role: 'dono',
+  async execute(ctx) {
+    await sendRegistryMenu(ctx, {
+      commandName: 'menudono',
+      role: 'dono',
+      title: '👑 MENU DO DONO',
+      descriptions: OWNER_DESCRIPTIONS,
+      extraLines: ['Comandos exclusivos do proprietário e donos adicionais'],
+    });
   },
 });
 
@@ -156,7 +190,7 @@ registerCommand({
       'FN:Criador Oficial do Nyx Bot',
       'TEL;type=CELL;type=VOICE;waid=555481296959:+555481296959',
       'END:VCARD',
-    ].join('\n');
+    ].join('\\n');
     await sock.sendMessage(
       chatJid,
       { contacts: { displayName: 'Criador Oficial do Nyx Bot', contacts: [{ vcard }] } },
@@ -165,13 +199,12 @@ registerCommand({
   },
 });
 
-
 registerCommand({
   name: 'sobre',
   aliases: ['about', 'infobot'],
   role: 'membro',
   async execute({ sock, chatJid, message, reply }) {
-    const about = `╭─「 💜 ${config.name} 」
+    const about = `╭─「 💜 ${config.name} 」 
 │ Sua assistente para WhatsApp
 │
 │ ✨ O QUE EU FAÇO
@@ -189,10 +222,7 @@ registerCommand({
 
     try {
       const background = await readFile(new URL('../../mídia/nyx-background.jpg', import.meta.url));
-      await sock.sendMessage(chatJid, {
-        image: background,
-        caption: about,
-      }, { quoted: message });
+      await sock.sendMessage(chatJid, { image: background, caption: about }, { quoted: message });
     } catch {
       await reply(about);
     }
