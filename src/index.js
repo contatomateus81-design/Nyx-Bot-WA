@@ -4,6 +4,7 @@ import { mkdir } from 'node:fs/promises';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { config, validateConfig } from './config.js';
+import { claimProcessedMessage } from './store.js';
 import { handleMessage } from './handler.js';
 import { startAgendaScheduler } from './agenda.js';
 import { handleGroupMessage, handleParticipantsUpdate, handleX9Message, rememberContact } from './events.js';
@@ -190,6 +191,14 @@ async function startBot() {
     if (type !== 'notify' && !(type === 'append' && ownerCommand)) continue;
     // Ignore the linked account's ordinary outgoing messages to prevent loops.
     if (message.key.fromMe && !ownerCommand) continue;
+
+    // Persistently ignore the same WhatsApp message if Baileys replays it.
+    const isNewMessage = await claimProcessedMessage(message.key.remoteJid, message.key.id);
+    if (!isNewMessage) {
+     console.log('[messages.upsert] Mensagem duplicada; ignorando.');
+     continue;
+    }
+
     await logIncomingMessage(sock, message);
     await handleGroupMessage(sock, message);
     await handleMessage(sock, message);
