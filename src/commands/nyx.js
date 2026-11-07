@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { registerCommand } from '../handler.js';
+import { config } from '../config.js';
 
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
