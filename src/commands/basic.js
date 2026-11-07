@@ -44,7 +44,14 @@ async function getMenuHeader(ctx, commandName) {
 }
 
 const COMMAND_INFO = {
-  menu: { description: 'Mostrar o menu geral de comandos.' },\n  cadastrar: { description: 'Solicitar ou realizar cadastro para usar os comandos da Nyx.' },\n  aprovar: { description: 'Aprovar uma solicitação de acesso.', usage: 'aprovar número' },\n  recusar: { description: 'Recusar uma solicitação de acesso.', usage: 'recusar número' },\n  acesso-remover: { description: 'Retirar o acesso de um usuário; um novo cadastro exigirá aprovação.', usage: 'acesso-remover número' },\n  bloquear: { description: 'Bloquear o acesso de um usuário.', usage: 'bloquear número' },\n  desbloquear: { description: 'Retirar o bloqueio e deixar o usuário aguardando aprovação.', usage: 'desbloquear número' },\n  usuarios: { description: 'Listar os usuários autorizados e as solicitações pendentes.' },
+  menu: { description: 'Mostrar o menu geral de comandos.' },
+  cadastrar: { description: 'Solicitar ou realizar cadastro para usar os comandos da Nyx.' },
+  aprovar: { description: 'Aprovar uma solicitação de acesso.', usage: 'aprovar número' },
+  recusar: { description: 'Recusar uma solicitação de acesso.', usage: 'recusar número' },
+  'acesso-remover': { description: 'Retirar o acesso de um usuário; um novo cadastro exigirá aprovação.', usage: 'acesso-remover número' },
+  bloquear: { description: 'Bloquear o acesso de um usuário.', usage: 'bloquear número' },
+  desbloquear: { description: 'Retirar o bloqueio e deixar o usuário aguardando aprovação.', usage: 'desbloquear número' },
+  usuarios: { description: 'Listar os usuários autorizados e as solicitações pendentes.' },
   menuadm: { description: 'Mostrar os comandos de administração de grupos.' },
   menudono: { description: 'Mostrar os comandos exclusivos do dono.' },
   info: { description: 'Mostrar a descrição, o modo de uso e os aliases de um comando.', usage: 'info nome_do_comando' },
