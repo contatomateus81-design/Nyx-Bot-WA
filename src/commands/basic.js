@@ -173,6 +173,52 @@ async function sendRegistryMenu(ctx, { commandName, role, title }) {
   await sendMenu(ctx, commandName, title, names);
 }
 
+async function sendOwnerMenu(ctx) {
+  const commandName = 'menudono';
+  const names = getRegisteredCommands('dono')
+    .filter((command) => command.name !== commandName)
+    .map((command) => command.name);
+  if (!names.includes('agenda-criar')) names.push('agenda-criar');
+
+  const available = new Set(names);
+  const groups = [
+    { label: 'acesso/', commands: ['usuarios', 'aprovar', 'recusar', 'acesso-remover', 'bloquear', 'desbloquear'] },
+    { label: 'donos/', commands: ['adddono', 'deldono'] },
+    { label: 'agenda/', commands: ['agenda-criar', 'agenda-limpar', 'agenda-lista'] },
+  ];
+
+  const grouped = new Set(groups.flatMap((group) => group.commands));
+  const lines = [];
+  for (const group of groups) {
+    const commands = group.commands.filter((name) => available.has(name));
+    if (!commands.length) continue;
+    lines.push(`│ ${group.label}`);
+    lines.push(...commands.map((name) => `││ }${name}`));
+  }
+
+  const general = names
+    .filter((name) => !grouped.has(name))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  if (general.length) {
+    lines.push(...general.map((name) => `│ }${name}`));
+  }
+
+  const header = await getMenuHeader(ctx, commandName);
+  const caption = [
+    header.text,
+    '',
+    '╭━━━〔 👑 MENU DO DONO 〕━━━╮',
+    ...lines,
+    '╰━━━━━━━━━━━━━━━━━━━━╯',
+    '',
+    `📋 Para voltar, envie ${config.prefix}menu.`,
+  ].join('\\n');
+  const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
+  await ctx.sock.sendMessage(ctx.chatJid, {
+    image, caption, mentions: [header.actualSenderJid],
+  }, { quoted: ctx.message });
+}
+
 registerCommand({
   name: 'menu',
   aliases: ['help', 'ajuda'],
@@ -201,12 +247,7 @@ registerCommand({
   aliases: ['menu-dono'],
   role: 'dono',
   async execute(ctx) {
-    await sendRegistryMenu(ctx, {
-      commandName: 'menudono',
-      role: 'dono',
-      title: '👑 MENU DO DONO',
-
-    });
+    await sendOwnerMenu(ctx);
   },
 });
 
