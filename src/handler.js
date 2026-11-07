@@ -7,10 +7,14 @@ export function getRegisteredCommandCount() {
   return new Set(commands.values()).size;
 }
 
-export function getRegisteredCommands(role) {
+export function getRegisteredCommands(role = null) {
   return [...new Set(commands.values())]
-    .filter((command) => command.role === role)
+    .filter((command) => role === null || command.role === role)
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+
+export function getRegisteredCommand(name) {
+  return commands.get(String(name ?? '').trim().toLowerCase()) ?? null;
 }
 
 export function registerCommand(command) {
