@@ -43,13 +43,18 @@ registerCommand({
       name,
       timestamp: date.getTime(),
       reminderSent: false,
+      eventSent: false,
       createdBy: ctx.senderJid,
     };
     if (ctx.isGroup) {
       try { event.chatName = (await ctx.sock.groupMetadata(ctx.chatJid)).subject || event.chatName; } catch {}
     }
     await addAgendaEvent(event);
-    await ctx.reply(`📅 *Evento agendado!*\n\n✨ ${name}\n🗓️ ${formatDate(event.timestamp)}\n🔔 Vou avisar 10 minutos antes neste chat.\n🆔 ID: ${event.id}`);
+    const minutesUntilEvent = Math.ceil((event.timestamp - Date.now()) / 60000);
+    const reminderPlan = minutesUntilEvent > 10
+      ? 'Vou avisar 10 minutos antes e novamente no horário do evento.'
+      : 'Como falta menos de 10 minutos, vou avisar agora e novamente no horário do evento.';
+    await ctx.reply(`📅 *Evento agendado!*\\n\\n✨ ${name}\\n🗓️ ${formatDate(event.timestamp)}\\n🔔 ${reminderPlan}\\n🆔 ID: ${event.id}`);
   },
 });
 
