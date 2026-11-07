@@ -118,7 +118,7 @@ registerCommand({
       const safeAnswer = answer.length > MAX_OUTPUT_LENGTH
         ? `${answer.slice(0, MAX_OUTPUT_LENGTH - 18).trimEnd()}\n\n[Resposta reduzida]`
         : answer;
-      await ctx.reply(safeAnswer);
+      await ctx.reply(weatherContext ? `${safeAnswer}\n\n🌐 Fonte: https://open-meteo.com` : safeAnswer);
     } catch (error) {
       console.error('[nyx] Falha na consulta à Groq:', error?.name || error?.message || error);
       if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
