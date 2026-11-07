@@ -30,7 +30,7 @@ const DDD_CITIES = {
 
 const WEATHER_TERMS = /\b(?:clima|previs[aã]o(?: do tempo)?|como (?:está|esta) o tempo|temperatura|vai chover|chover|chuva|chovendo|umidade do ar|sensa[cç][aã]o t[eé]rmica)\b/i;
 const CITY_PATTERN = /\b(?:em|para|na cidade de|no munic[ií]pio de)\s+([\p{L}][\p{L}'’.-]*(?:\s+(?:de|do|da|dos|das|e)\s+[\p{L}][\p{L}'’.-]*|\s+[\p{L}][\p{L}'’.-]*){0,3})/iu;
-const CORRECTION_PATTERN = /\b(?:estou|t[oô]|fico|moro)\s+em\s+([\p{L}][\p{L}'’.-]*(?:\s+(?:de|do|da|dos|das|e)\s+[\p{L}][\p{L}'’.-]*|\s+[\p{L}][\p{L}'’.-]*){0,3})/iu;
+const CORRECTION_PATTERN = /\b(?:(?:estou|t[oô]|fico|moro|aqui|na verdade)(?:\s+eu)?\s+em)\s+([\p{L}][\p{L}'’.-]*(?:\s+(?:de|do|da|dos|das|e)\s+[\p{L}][\p{L}'’.-]*|\s+[\p{L}][\p{L}'’.-]*){0,3})/iu;
 const TRAILING_CONTEXT = /\s+(?:hoje|amanh[aã]|agora|essa semana|nesta semana|no fim de semana|nos pr[oó]ximos dias).*$/iu;
 
 export function getDefaultCityForPhone(phoneNumber) {
