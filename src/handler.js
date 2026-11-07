@@ -30,26 +30,11 @@ export async function runCommandForTest(context, name, args = []) {
 }
 
 export async function handleMessage(sock, message) {
-  let nativeFlowId;
-  const nativeFlowParams = message.message?.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson;
-  if (typeof nativeFlowParams === 'string') {
-    try {
-      const parsed = JSON.parse(nativeFlowParams);
-      nativeFlowId = parsed.id ?? parsed.row_id ?? parsed.selectedId;
-    } catch {}
-  }
-  const interactiveId = message.message?.listResponseMessage?.singleSelectReply?.selectedRowId
-    ?? message.message?.buttonsResponseMessage?.selectedButtonId
-    ?? message.message?.templateButtonReplyMessage?.selectedId
-    ?? nativeFlowId;
-  const isMenuSelection = typeof interactiveId === 'string' && interactiveId.startsWith('nyxmenu:');
-  const text = isMenuSelection ? interactiveId : (
-    message.message?.conversation
+  const text = message.message?.conversation
     ?? message.message?.extendedTextMessage?.text
     ?? message.message?.imageMessage?.caption
-    ?? message.message?.videoMessage?.caption
-  );
-  if (!isMenuSelection && !text?.startsWith(config.prefix)) return;
+    ?? message.message?.videoMessage?.caption;
+  if (!text?.startsWith(config.prefix)) return;
 
   const senderJid = message.key.fromMe
     ? `${config.ownerNumber}@s.whatsapp.net`
