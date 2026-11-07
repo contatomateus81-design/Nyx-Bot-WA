@@ -1,4 +1,4 @@
-import { registerCommand, getRegisteredCommands } from '../handler.js';
+import { registerCommand, getRegisteredCommands, getRegisteredCommand } from '../handler.js';
 import { readFile } from 'node:fs/promises';
 import { config } from '../config.js';
 
@@ -43,11 +43,71 @@ async function getMenuHeader(ctx, commandName) {
   };
 }
 
-async function sendMainMenu(ctx) {
-  const header = await getMenuHeader(ctx, 'menu');
-  const menuText = [
+const COMMAND_INFO = {
+  menu: { description: 'Mostrar o menu geral de comandos.' },
+  menuadm: { description: 'Mostrar os comandos de administração de grupos.' },
+  menudono: { description: 'Mostrar os comandos exclusivos do dono.' },
+  info: { description: 'Mostrar a descrição, o modo de uso e os aliases de um comando.', usage: 'info nome_do_comando' },
+  ping: { description: 'Verificar se a Nyx está respondendo.' },
+  dono: { description: 'Mostrar o contato do criador oficial do bot.' },
+  sobre: { description: 'Mostrar informações sobre a Nyx Bot.' },
+  tempo: { description: 'Mostrar há quanto tempo o processo do bot está ligado.' },
+  escolher: { description: 'Escolher aleatoriamente uma opção entre as opções informadas.', usage: 'escolher opção 1 | opção 2' },
+  bola8: { description: 'Responder a uma pergunta com uma resposta aleatória.', usage: 'bola8 sua pergunta' },
+  infogrupo: { description: 'Mostrar informações básicas do grupo.' },
+  totag: { description: 'Marcar todos os participantes do grupo.', usage: 'totag [mensagem]' },
+  remover: { description: 'Remover um participante do grupo.', usage: 'remover @pessoa' },
+  promover: { description: 'Promover um participante a administrador.', usage: 'promover @pessoa' },
+  rebaixar: { description: 'Remover o cargo de administrador de um participante.', usage: 'rebaixar @pessoa' },
+  link: { description: 'Gerar o link de convite do grupo.' },
+  revogar: { description: 'Revogar o link de convite atual do grupo.' },
+  nomegrupo: { description: 'Alterar o nome do grupo.', usage: 'nomegrupo novo nome' },
+  descricao: { description: 'Alterar a descrição do grupo.', usage: 'descricao nova descrição' },
+  fechargrupo: { description: 'Restringir o envio de mensagens aos administradores.' },
+  abrirgrupo: { description: 'Liberar o envio de mensagens para todos os participantes.' },
+  x9: { description: 'Ativar ou desativar o registro de mensagens de texto excluídas.', usage: 'x9 1 | x9 0' },
+  boasvindas: { description: 'Ativar ou desativar as mensagens de boas-vindas.', usage: 'boasvindas [1|0]' },
+  antilink: { description: 'Ativar ou desativar a proteção contra links no grupo.', usage: 'antilink [1|0]' },
+  nota: { description: 'Adicionar, consultar, listar ou apagar notas do grupo.', usage: 'nota adicionar <nome> <texto> | ver <nome> | listar | apagar <nome>' },
+  aviso: { description: 'Registrar uma advertência para um participante.', usage: 'aviso @pessoa' },
+  say: { description: 'Enviar uma mensagem pelo bot.', usage: 'say mensagem' },
+  chatid: { description: 'Mostrar o identificador deste chat.' },
+  botname: { description: 'Mostrar o nome configurado para o bot.' },
+  adddono: { description: 'Conceder poderes de dono adicional a uma pessoa.', usage: 'adddono @pessoa ou número' },
+  deldono: { description: 'Remover os poderes de dono adicional de uma pessoa.', usage: 'deldono @pessoa ou número' },
+  test: { description: 'Testar um evento ou executar outro comando em modo de teste.', usage: 'test <evento ou comando> [argumentos]' },
+  crash: { description: 'Executar um teste controlado do tratamento de erros.', usage: 'crash [erro]' },
+  play: { description: 'Baixar áudio de uma música ou de um link compatível com yt-dlp.', usage: 'play nome da música ou link' },
+  fig: { description: 'Criar uma figurinha a partir de uma imagem enviada com o comando ou respondida com ele.', usage: 'fig (na legenda da imagem ou respondendo à imagem)' },
+  perfil: { description: 'Mostrar uma ficha recreativa de você ou de outra pessoa.', usage: 'perfil [@pessoa]' },
+  status: { description: 'Mostrar o estado da conexão, memória e recursos do bot.' },
+  tts: { description: 'Converter um texto em áudio usando o Piper configurado localmente.', usage: 'tts texto' },
+  tomp3: { description: 'Extrair o áudio de um vídeo e convertê-lo para MP3.', usage: 'tomp3 (respondendo a um vídeo ou na legenda)' },
+  'agenda-criar': { description: 'Criar um evento e agendar lembretes para ele.', usage: 'agenda-criar DD/MM/AAAA HH:MM nome do evento' },
+  'agenda-lista': { description: 'Listar os eventos futuros salvos na agenda global.' },
+  'agenda-limpar': { description: 'Apagar todos os eventos salvos na agenda global.' },
+};
+
+async function sendMenu(ctx, commandName, title, commandNames) {
+  const header = await getMenuHeader(ctx, commandName);
+  const caption = [
     header.text,
     '',
+    `╭━━━〔 ${title} 〕━━━╮`,
+    ...commandNames.map((name) => `│ ${config.prefix}${name}`),
+    '╰━━━━━━━━━━━━━━━━━━━━╯',
+    '',
+    `📋 Para voltar, envie ${config.prefix}menu.`,
+  ].join('\\n');
+  const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
+  await ctx.sock.sendMessage(ctx.chatJid, {
+    image, caption, mentions: [header.actualSenderJid],
+  }, { quoted: ctx.message });
+}
+
+async function sendMainMenu(ctx) {
+  const header = await getMenuHeader(ctx, 'menu');
+  const sections = [
     '╭━━━〔 📋 MENU 📋 〕━━━╮',
     `│ ${config.prefix}menu`,
     `│ ${config.prefix}menuadm`,
@@ -55,80 +115,52 @@ async function sendMainMenu(ctx) {
     '╰━━━━━━━━━━━━━━━━━━━━╯',
     '',
     '╭━━━〔 ✨ GERAL 〕━━━╮',
-    `│ ${config.prefix}ping — testar resposta`,
-    `│ ${config.prefix}tempo — tempo ligado`,
-    `│ ${config.prefix}sobre — sobre o bot`,
-    `│ ${config.prefix}dono — contato do criador`,
-    `│ ${config.prefix}play nome ou link — baixar áudio`,
-    `│ ${config.prefix}tts texto — falar em áudio (TTS local)`,
-    `│ ${config.prefix}status — diagnóstico do bot`,
-    `│ ${config.prefix}fig — criar figurinha de imagem`,
-    `│ ${config.prefix}perfil [@pessoa] — ficha divertida`,
+    ...['info','ping','tempo','sobre','dono','play','tts','status','fig','perfil','tomp3'].map((name) => `│ ${config.prefix}${name}`),
+    '╰━━━━━━━━━━━━━━━━━━━━╯',
     '',
     '╭━━━〔 🎲 DIVERSÃO 〕━━━╮',
-    `│ ${config.prefix}escolher A | B`,
-    `│ ${config.prefix}bola8 pergunta`,
+    `│ ${config.prefix}escolher`,
+    `│ ${config.prefix}bola8`,
     '╰━━━━━━━━━━━━━━━━━━━━╯',
-  ].join('\n');
-
+  ];
+  const caption = [header.text, '', ...sections].join('\\n');
   const image = await readFile(new URL('../../mídia/menu.jpg', import.meta.url));
   await ctx.sock.sendMessage(ctx.chatJid, {
-    image, caption: menuText, mentions: [header.actualSenderJid],
+    image, caption, mentions: [header.actualSenderJid],
   }, { quoted: ctx.message });
 }
 
-const ADMIN_DESCRIPTIONS = {
-  infogrupo: 'Mostrar informações do grupo.',
-  totag: 'Marcar todos os participantes.',
-  remover: 'Remover um participante.',
-  promover: 'Promover um participante a administrador.',
-  rebaixar: 'Remover o cargo de administrador.',
-  link: 'Gerar o convite do grupo.',
-  revogar: 'Revogar o convite atual.',
-  nomegrupo: 'Alterar o nome do grupo.',
-  descricao: 'Alterar a descrição do grupo.',
-  fechargrupo: 'Permitir mensagens somente de administradores.',
-  abrirgrupo: 'Liberar mensagens para todos.',
-  boasvindas: 'Ativar ou desativar as boas-vindas.',
-  antilink: 'Ativar ou desativar o anti-link.',
-  x9: 'Ativar ou desativar o registro de mensagens excluídas.',
-  nota: 'Adicionar, consultar, listar ou apagar notas.',
-  aviso: 'Advertir um participante.',
-};
-
-const OWNER_DESCRIPTIONS = {
-  'agenda-lista': 'Listar os eventos futuros de todas as conversas.',
-  'agenda-limpar': 'Apagar todos os eventos da agenda.',
-  adddono: 'Conceder poderes de dono adicional (somente dono oficial).',
-  deldono: 'Remover poderes de dono adicional (somente dono oficial).',
-  say: 'Enviar uma mensagem pelo bot.',
-  chatid: 'Mostrar o ID deste chat.',
-  botname: 'Mostrar o nome configurado para o bot.',
-  test: 'Testar um evento ou executar um comando de teste.',
-};
-
-async function sendRegistryMenu(ctx, { commandName, role, title, descriptions, extraLines = [] }) {
-  const header = await getMenuHeader(ctx, commandName);
-  const commands = getRegisteredCommands(role).filter((command) => command.name !== commandName);
-  const lines = commands.map((command) => {
-    const aliases = command.aliases?.length ? ` (atalhos: ${command.aliases.map((alias) => config.prefix + alias).join(', ')})` : '';
-    const description = descriptions[command.name] || command.description || 'Comando registrado.';
-    return `│ ${config.prefix}${command.name}${aliases} — ${description}`;
-  });
-  const body = [
-    header.text,
+async function sendInfo(ctx) {
+  const requestedName = String(ctx.args[0] ?? '').trim();
+  if (!requestedName) {
+    return ctx.reply(`💜 Informe o comando que deseja consultar.\\nExemplo: ${config.prefix}info play`);
+  }
+  const command = getRegisteredCommand(requestedName);
+  if (!command) {
+    return ctx.reply(`❌ Não encontrei o comando "${requestedName}". Confira o nome e tente novamente.`);
+  }
+  const details = COMMAND_INFO[command.name] ?? {};
+  const usage = details.usage ?? command.usage ?? command.name;
+  const aliases = command.aliases ?? [];
+  const lines = [
+    '💜 *INFORMAÇÕES DO COMANDO*',
     '',
-    `╭━━━〔 ${title} 〕━━━╮`,
-    ...extraLines.map((line) => `│ ${line}`),
-    ...lines,
-    '╰━━━━━━━━━━━━━━━━━━━━╯',
+    `🎵 *Comando:* ${config.prefix}${command.name}`,
     '',
-    `📋 Para voltar, envie ${config.prefix}menu.`,
-  ].join('\n');
-  await ctx.sock.sendMessage(ctx.chatJid, {
-    text: body,
-    ...(role === 'dono' ? { mentions: [header.actualSenderJid] } : {}),
-  }, { quoted: ctx.message });
+    details.description ?? command.description ?? 'Ainda não há uma descrição cadastrada para este comando.',
+    '',
+    `📌 *Como usar:* ${config.prefix}${usage}`,
+    ...(aliases.length ? ['', '*Também pode ser usado com:*', ...aliases.map((alias) => `${config.prefix}${alias}`)] : []),
+  ];
+  await ctx.reply(lines.join('\\n'));
+}
+
+async function sendRegistryMenu(ctx, { commandName, role, title }) {
+  const names = getRegisteredCommands(role)
+    .filter((command) => command.name !== commandName)
+    .map((command) => command.name);
+  if (role === 'admin') names.unshift('infogrupo');
+  await sendMenu(ctx, commandName, title, names);
 }
 
 registerCommand({
@@ -149,8 +181,7 @@ registerCommand({
       commandName: 'menuadm',
       role: 'admin',
       title: '👥 MENU ADMIN',
-      descriptions: ADMIN_DESCRIPTIONS,
-      extraLines: [`${config.prefix}infogrupo — Mostrar informações do grupo.`, 'Comandos de administração de grupos'],
+
     });
   },
 });
@@ -164,9 +195,17 @@ registerCommand({
       commandName: 'menudono',
       role: 'dono',
       title: '👑 MENU DO DONO',
-      descriptions: OWNER_DESCRIPTIONS,
-      extraLines: ['Comandos exclusivos do proprietário e donos adicionais'],
+
     });
+  },
+});
+
+registerCommand({
+  name: 'info',
+  aliases: ['informacao', 'informações'],
+  role: 'membro',
+  async execute(ctx) {
+    await sendInfo(ctx);
   },
 });
 
