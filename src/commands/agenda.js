@@ -54,7 +54,7 @@ registerCommand({
     const reminderPlan = minutesUntilEvent > 10
       ? 'Vou avisar 10 minutos antes e novamente no horário do evento.'
       : 'Como falta menos de 10 minutos, vou avisar agora e novamente no horário do evento.';
-    await ctx.reply(`📅 *Evento agendado!*\\n\\n✨ ${name}\\n🗓️ ${formatDate(event.timestamp)}\\n🔔 ${reminderPlan}\\n🆔 ID: ${event.id}`);
+    await ctx.reply(`📅 *Evento agendado!*\n\n✨ ${name}\n🗓️ ${formatDate(event.timestamp)}\n🔔 ${reminderPlan}\n🆔 ID: ${event.id}`);
   },
 });
 
