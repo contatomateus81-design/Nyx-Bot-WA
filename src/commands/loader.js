@@ -21,8 +21,10 @@ function validateCustomCommand(command, fileName) {
     throw new TypeError('aliases precisa ser uma lista de textos não vazios.');
   }
 
-  const names = [command.name, ...(command.aliases ?? [])]
-    .map((name) => name.trim().toLowerCase());
+  command.name = command.name.trim().toLowerCase();
+  command.aliases = (command.aliases ?? []).map((alias) => alias.trim().toLowerCase());
+
+  const names = [command.name, ...command.aliases];
 
   if (new Set(names).size !== names.length) {
     throw new Error('o comando contém nomes ou aliases repetidos.');
@@ -34,8 +36,8 @@ function validateCustomCommand(command, fileName) {
     }
   }
 
-  if (!/^[a-z0-9_-]+$/i.test(command.name.trim()) ||
-      (command.aliases ?? []).some((alias) => !/^[a-z0-9_-]+$/i.test(alias.trim()))) {
+  if (!/^[a-z0-9_-]+$/i.test(command.name) ||
+      command.aliases.some((alias) => !/^[a-z0-9_-]+$/i.test(alias))) {
     throw new Error('use apenas letras, números, hífen ou underline no name e nos aliases.');
   }
 
