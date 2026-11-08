@@ -6,6 +6,7 @@ import { stdin, stdout } from 'node:process';
 import { config, validateConfig } from './config.js';
 import { claimProcessedMessage } from './store.js';
 import { handleMessage } from './handler.js';
+import { loadCustomCommands } from './commands/loader.js';
 import { startAgendaScheduler } from './agenda.js';
 import { handleGroupMessage, handleParticipantsUpdate, handleX9Message, rememberContact } from './events.js';
 import './commands/basic.js';
@@ -22,6 +23,8 @@ import './commands/crash.js';
 import './commands/agenda.js';
 import './commands/nyx.js';
 import './commands/access.js';
+
+await loadCustomCommands();
  
 const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 let reconnectTimer;
