@@ -4,6 +4,7 @@ const MAX_INTERVAL_MS = 90 * 60 * 1000;
 
 let timer;
 let active = false;
+let generation = 0;
 
 const messages = [
   '🤖 *NYX • TESTE AUTOMÁTICO*\n\nEste é um envio automático de verificação. A conexão e o envio de mensagens estão funcionando.',
@@ -15,11 +16,11 @@ function randomDelay() {
   return Math.floor(Math.random() * (MAX_INTERVAL_MS - MIN_INTERVAL_MS + 1)) + MIN_INTERVAL_MS;
 }
 
-function scheduleNext(sock) {
-  if (!active) return;
+function scheduleNext(sock, runId) {
+  if (!active || runId !== generation) return;
 
   timer = setTimeout(async () => {
-    if (!active) return;
+    if (!active || runId !== generation) return;
 
     const text = messages[Math.floor(Math.random() * messages.length)];
     const timestamp = new Intl.DateTimeFormat('pt-BR', {
@@ -36,7 +37,7 @@ function scheduleNext(sock) {
     } catch (error) {
       console.error('[test-feed] Falha ao enviar mensagem de teste:', error?.message ?? error);
     } finally {
-      scheduleNext(sock);
+      scheduleNext(sock, runId);
     }
   }, randomDelay());
 
@@ -46,12 +47,15 @@ function scheduleNext(sock) {
 export function startRandomTestFeed(sock) {
   stopRandomTestFeed();
   active = true;
+  generation += 1;
+  const runId = generation;
   console.log('[test-feed] Feed automático de testes iniciado.');
-  scheduleNext(sock);
+  scheduleNext(sock, runId);
 }
 
 export function stopRandomTestFeed() {
   active = false;
+  generation += 1;
   if (timer) clearTimeout(timer);
   timer = undefined;
 }
