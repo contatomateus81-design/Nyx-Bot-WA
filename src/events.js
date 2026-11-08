@@ -91,8 +91,8 @@ function getPlainText(message) {
 
 function sanitizeX9Text(text) {
  return text
-  .replace(/\\b(?:https?:\\/\\/|www\\.)[^\\s<>"']+/gi, '[link removido]')
-  .replace(/\\bchat\\.whatsapp\\.com\\/[^\\s<>"']+/gi, '[link removido]');
+  .replace(/\b(?:https?:\/\/|www\.)[^\s<>"']+/gi, '[link removido]')
+  .replace(/\bchat\.whatsapp\.com\/[^\s<>"']+/gi, '[link removido]');
 }
 
 export async function handleX9Message(sock, message) {
