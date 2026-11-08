@@ -89,6 +89,12 @@ function getPlainText(message) {
  return typeof value === 'string' ? value.trim() : '';
 }
 
+function sanitizeX9Text(text) {
+ return text
+  .replace(/\\b(?:https?:\\/\\/|www\\.)[^\\s<>"']+/gi, '[link removido]')
+  .replace(/\\bchat\\.whatsapp\\.com\\/[^\\s<>"']+/gi, '[link removido]');
+}
+
 export async function handleX9Message(sock, message) {
  const key = message?.key;
  const jid = key?.remoteJid;
@@ -129,7 +135,7 @@ export async function handleX9Message(sock, message) {
   return;
  }
  if (!settings.x9 || key.fromMe) return;
- const text = getPlainText(message);
+ const text = sanitizeX9Text(getPlainText(message));
  if (!text || !key.id) return;
  const authorJid = key.participant || '';
  if (!authorJid) return;
