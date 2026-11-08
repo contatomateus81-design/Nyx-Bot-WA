@@ -1,6 +1,6 @@
 const TEST_GROUP_JID = '120363433149371195@g.us';
-const MIN_INTERVAL_MS = 45 * 60 * 1000;
-const MAX_INTERVAL_MS = 90 * 60 * 1000;
+const MIN_INTERVAL_MS = 30 * 1000;
+const MAX_INTERVAL_MS = 3000 * 1000;
 
 let timer;
 let active = false;
