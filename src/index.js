@@ -8,7 +8,6 @@ import { claimProcessedMessage } from './store.js';
 import { handleMessage } from './handler.js';
 import { loadCustomCommands } from './commands/loader.js';
 import { startAgendaScheduler } from './agenda.js';
-import { startRandomTestFeed, stopRandomTestFeed } from './test-feed.js';
 import { handleGroupMessage, handleParticipantsUpdate, handleX9Message, rememberContact } from './events.js';
 import './commands/basic.js';
 import './commands/group.js';
@@ -146,10 +145,8 @@ async function startBot() {
     connectionOpenedAt = Math.floor(Date.now() / 1000);
     console.log(`✅ ${config.name} conectado ao WhatsApp.`);
     startAgendaScheduler(sock);
-    startRandomTestFeed(sock);
    }
    if (connection === 'close') {
-    stopRandomTestFeed();
     connectionClosed = true;
     const statusCode = lastDisconnect?.error?.output?.statusCode;
     console.error('Conexão encerrada:', statusCode ?? 'código desconhecido');
