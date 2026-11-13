@@ -15,6 +15,7 @@ const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
 const MAX_INPUT_LENGTH = 4000;
 const MAX_OUTPUT_LENGTH = 3500;
+const AI_FOOTER = '> Powered By NyxAI © 2026';
 
 registerCommand({
   name: 'nyx',
