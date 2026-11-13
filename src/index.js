@@ -5,6 +5,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { config, validateConfig } from './config.js';
 import { claimProcessedMessage } from './store.js';
+import { handleAutomaticAI } from './ai.js';
 import { handleMessage } from './handler.js';
 import { loadCustomCommands } from './commands/loader.js';
 import { startAgendaScheduler } from './agenda.js';
@@ -206,6 +207,7 @@ async function startBot() {
     await logIncomingMessage(sock, message);
     await handleGroupMessage(sock, message);
     await handleMessage(sock, message);
+    await handleAutomaticAI(sock, message);
    }
   });
   sock.ev.on('group-participants.update', async (update) => { await handleParticipantsUpdate(sock, update); });
