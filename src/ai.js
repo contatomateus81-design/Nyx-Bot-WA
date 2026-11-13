@@ -1,4 +1,5 @@
 import { getAIEnabled, getAIConversation, appendAIMessage } from './store.js';
+import { config } from './config.js';
 
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
@@ -48,7 +49,7 @@ export async function handleAutomaticAI(sock, message) {
   if (!await getAIEnabled()) return;
 
   const text = getText(message).trim();
-  if (!text || text.length > MAX_INPUT_LENGTH || text.startsWith(process.env.BOT_PREFIX?.trim() || '}')) return;
+  if (!text || text.length > MAX_INPUT_LENGTH || text.startsWith(config.prefix)) return;
   if (!isGroup && !chatJid.endsWith('@s.whatsapp.net') && !chatJid.endsWith('@lid')) return;
 
   const mentioned = isGroup && isBotMentioned(sock, message);
