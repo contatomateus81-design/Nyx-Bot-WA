@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 const filePath = 'data/store.json';
 let cache;
 let writeQueue = Promise.resolve();
-const defaults = { groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [], weatherLocations: {}, accessControl: { authorized: [], pending: [], blocked: [], denied: [] } };
+const defaults = { aiEnabled: false, aiConversations: {}, groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [], weatherLocations: {}, accessControl: { authorized: [], pending: [], blocked: [], denied: [] } };
 async function load() {
   if (cache) return cache;
   await mkdir(dirname(filePath), { recursive: true });
@@ -204,4 +204,57 @@ export async function setWeatherLocation(number, location) {
   data.weatherLocations[normalized] = city;
   await persist();
   return true;
+}
+
+
+// Persistent automatic-AI settings and a bounded conversation window.
+const MAX_AI_MESSAGES_PER_CHAT = 20;
+const MAX_AI_CHATS = 100;
+
+export async function getAIEnabled() {
+  const data = await load();
+  return data.aiEnabled === true;
+}
+
+export async function setAIEnabled(enabled) {
+  const data = await load();
+  data.aiEnabled = Boolean(enabled);
+  await persist();
+  return data.aiEnabled;
+}
+
+export async function getAIConversation(chatJid) {
+  const data = await load();
+  if (!data.aiConversations || typeof data.aiConversations !== 'object') data.aiConversations = {};
+  const conversation = data.aiConversations[chatJid];
+  return Array.isArray(conversation) ? conversation.slice(-MAX_AI_MESSAGES_PER_CHAT) : [];
+}
+
+export async function appendAIMessage(chatJid, message) {
+  const data = await load();
+  if (!data.aiConversations || typeof data.aiConversations !== 'object') data.aiConversations = {};
+  const chat = String(chatJid ?? '').trim();
+  if (!chat) return;
+  const entry = {
+    role: message.role === 'assistant' ? 'assistant' : 'user',
+    content: String(message.content ?? '').slice(0, 4000),
+    ...(message.sender ? { sender: String(message.sender) } : {}),
+    timestamp: Number(message.timestamp) || Math.floor(Date.now() / 1000),
+  };
+  const history = Array.isArray(data.aiConversations[chat]) ? data.aiConversations[chat] : [];
+  history.push(entry);
+  data.aiConversations[chat] = history.slice(-MAX_AI_MESSAGES_PER_CHAT);
+
+  const chatKeys = Object.keys(data.aiConversations);
+  if (chatKeys.length > MAX_AI_CHATS) {
+    chatKeys.sort((a, b) => {
+      const aTime = data.aiConversations[a]?.at(-1)?.timestamp ?? 0;
+      const bTime = data.aiConversations[b]?.at(-1)?.timestamp ?? 0;
+      return aTime - bTime;
+    });
+    for (const oldChat of chatKeys.slice(0, chatKeys.length - MAX_AI_CHATS)) {
+      delete data.aiConversations[oldChat];
+    }
+  }
+  await persist();
 }
