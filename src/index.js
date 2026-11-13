@@ -23,6 +23,7 @@ import './commands/status.js';
 import './commands/crash.js';
 import './commands/agenda.js';
 import './commands/nyx.js';
+import './commands/ia.js';
 import './commands/access.js';
 
 await loadCustomCommands();
