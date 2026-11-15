@@ -6,7 +6,7 @@ const format = (value) => (Number(value) || 0).toLocaleString('pt-BR');
 
 function sameIdentity(a = '', b = '') {
   const normalize = (value) => String(value).split(':')[0].trim().toLowerCase();
-  const digits = (value) => normalize(value).split('@')[0].replace(/\\D/g, '');
+  const digits = (value) => normalize(value).split('@')[0].replace(/\D/g, '');
   if (normalize(a) === normalize(b)) return true;
   const aDigits = digits(a);
   const bDigits = digits(b);
@@ -16,6 +16,7 @@ function sameIdentity(a = '', b = '') {
 registerCommand({
   name: 'contmsg',
   aliases: ['contarmensagens', 'atividade'],
+  allowUnregistered: true,
   async execute(ctx) {
     if (!ctx.isGroup) return ctx.reply('ℹ️ Este comando só funciona em grupos.');
 
@@ -41,26 +42,26 @@ registerCommand({
     const stats = await getGroupMessageStats(group.jid, targetIds);
     const mentionJid = participant.id ?? targetJid;
     const displayId = participant.phoneNumber ?? participant.id ?? targetJid;
-    const mentionText = `@${String(displayId).split('@')[0].split(':')[0]}`;
+    const mentionText = '@' + String(displayId).split('@')[0].split(':')[0];
 
     const caption = [
       '╭━━━〔 💜 NYX • ATIVIDADE 〕━━━╮',
       '',
-      `👤 Membro: ${mentionText}`,
+      '👤 Membro: ' + mentionText,
       '',
-      `💬 Mensagens: ${format(stats.messages)}`,
-      `🔗 Links enviados: ${format(stats.links)}`,
+      '💬 Mensagens: ' + format(stats.messages),
+      '🔗 Links enviados: ' + format(stats.links),
       '',
-      `📸 Fotos: ${format(stats.photos)}`,
-      `🎥 Vídeos: ${format(stats.videos)}`,
-      `🎞️ GIFs: ${format(stats.gifs)}`,
-      `🎭 Figurinhas: ${format(stats.stickers)}`,
+      '📸 Fotos: ' + format(stats.photos),
+      '🎥 Vídeos: ' + format(stats.videos),
+      '🎞️ GIFs: ' + format(stats.gifs),
+      '🎭 Figurinhas: ' + format(stats.stickers),
       '',
       '╰━━━━━━━━━━━━━━━━━━━━━━╯',
       stats.messages
         ? '📊 Contagem desde a ativação do contador.'
         : '⏳ Ainda não há mensagens registradas desde a instalação do contador.',
-    ].join('\\n');
+    ].join('\n');
 
     let pictureUrl = null;
     for (const identity of [participant.id, participant.lid, participant.phoneNumber, targetJid].filter(Boolean)) {
