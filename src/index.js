@@ -215,7 +215,7 @@ async function startBot() {
       ?? content.videoMessage?.caption
       ?? content.documentMessage?.caption
       ?? '';
-     const links = (text.match(/https?:\\/\\/[^\\s<>()]+|www\\.[^\\s<>()]+/gi) ?? []).length;
+     const links = (text.match(/https?:\/\/[^\s<>()]+|www\.[^\s<>()]+/gi) ?? []).length;
      const mediaType = content.imageMessage ? 'photos'
       : content.videoMessage ? (content.videoMessage.gifPlayback ? 'gifs' : 'videos')
       : content.stickerMessage ? 'stickers'
