@@ -263,7 +263,7 @@ export async function appendAIMessage(chatJid, message) {
 // Persistent per-member message counters, scoped to each WhatsApp group.
 export async function recordGroupMessage({ groupJid, senderJid, links = 0, mediaType = null, timestamp = 0 }) {
   const group = String(groupJid ?? '').trim();
-  const sender = String(senderJid ?? '').trim();
+  const sender = String(senderJid ?? '').trim().split(':')[0];
   if (!group.endsWith('@g.us') || !sender) return false;
 
   const data = await load();
