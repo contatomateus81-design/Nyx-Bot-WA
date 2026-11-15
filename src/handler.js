@@ -67,7 +67,7 @@ export async function handleMessage(sock, message) {
 
   const command = commands.get(name);
   const isRegistrationCommand = ['cadastrar', 'logar'].includes(name);
-  if (!isOwner && !isRegistrationCommand) {
+  if (!isOwner && !isRegistrationCommand && !command?.allowUnregistered) {
     const accessStatus = await getAccessStatus(senderNumber);
     if (accessStatus !== 'authorized') return;
   }
