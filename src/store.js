@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 const filePath = 'data/store.json';
 let cache;
 let writeQueue = Promise.resolve();
-const defaults = { aiEnabled: false, aiConversations: {}, groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [], weatherLocations: {}, accessControl: { authorized: [], pending: [], blocked: [], denied: [] } };
+const defaults = { aiEnabled: false, aiConversations: {}, groupMessageStats: {}, groups: {}, users: {}, notes: {}, delegatedOwners: [], agendaEvents: [], processedMessageIds: [], weatherLocations: {}, accessControl: { authorized: [], pending: [], blocked: [], denied: [] } };
 async function load() {
   if (cache) return cache;
   await mkdir(dirname(filePath), { recursive: true });
@@ -257,4 +257,51 @@ export async function appendAIMessage(chatJid, message) {
     }
   }
   await persist();
+}
+
+
+// Persistent per-member message counters, scoped to each WhatsApp group.
+export async function recordGroupMessage({ groupJid, senderJid, links = 0, mediaType = null, timestamp = 0 }) {
+  const group = String(groupJid ?? '').trim();
+  const sender = String(senderJid ?? '').trim();
+  if (!group.endsWith('@g.us') || !sender) return false;
+
+  const data = await load();
+  if (!data.groupMessageStats || typeof data.groupMessageStats !== 'object') data.groupMessageStats = {};
+  data.groupMessageStats[group] ??= {};
+  const members = data.groupMessageStats[group];
+  members[sender] ??= {
+    messages: 0, links: 0, photos: 0, videos: 0, gifs: 0, stickers: 0,
+    firstSeen: Number(timestamp) || Math.floor(Date.now() / 1000),
+    lastSeen: 0,
+  };
+
+  const stats = members[sender];
+  stats.messages += 1;
+  stats.links += Math.max(0, Number(links) || 0);
+  if (['photos', 'videos', 'gifs', 'stickers'].includes(mediaType)) stats[mediaType] += 1;
+  const seenAt = Number(timestamp) || Math.floor(Date.now() / 1000);
+  if (!stats.firstSeen) stats.firstSeen = seenAt;
+  stats.lastSeen = seenAt;
+  await persist();
+  return true;
+}
+
+export async function getGroupMessageStats(groupJid, senderJids = []) {
+  const data = await load();
+  const group = data.groupMessageStats?.[groupJid];
+  const keys = [...new Set((Array.isArray(senderJids) ? senderJids : [senderJids]).filter(Boolean))];
+  const result = { messages: 0, links: 0, photos: 0, videos: 0, gifs: 0, stickers: 0, firstSeen: 0, lastSeen: 0 };
+  for (const key of keys) {
+    const stats = group?.[key];
+    if (!stats) continue;
+    for (const field of ['messages', 'links', 'photos', 'videos', 'gifs', 'stickers']) {
+      result[field] += Math.max(0, Number(stats[field]) || 0);
+    }
+    const firstSeen = Number(stats.firstSeen) || 0;
+    const lastSeen = Number(stats.lastSeen) || 0;
+    if (firstSeen && (!result.firstSeen || firstSeen < result.firstSeen)) result.firstSeen = firstSeen;
+    if (lastSeen > result.lastSeen) result.lastSeen = lastSeen;
+  }
+  return result;
 }
