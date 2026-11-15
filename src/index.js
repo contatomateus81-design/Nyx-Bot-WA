@@ -4,7 +4,7 @@ import { mkdir } from 'node:fs/promises';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { config, validateConfig } from './config.js';
-import { claimProcessedMessage } from './store.js';
+import { claimProcessedMessage, recordGroupMessage } from './store.js';
 import { handleAutomaticAI } from './ai.js';
 import { handleMessage } from './handler.js';
 import { loadCustomCommands } from './commands/loader.js';
@@ -24,6 +24,7 @@ import './commands/crash.js';
 import './commands/agenda.js';
 import './commands/nyx.js';
 import './commands/ia.js';
+import './commands/contmsg.js';
 import './commands/access.js';
 
 await loadCustomCommands();
@@ -203,6 +204,33 @@ async function startBot() {
     if (!isNewMessage) {
      console.log('[messages.upsert] Mensagem duplicada; ignorando.');
      continue;
+    }
+
+    const remoteJid = message.key.remoteJid ?? '';
+    if (remoteJid.endsWith('@g.us') && !message.key.fromMe && message.key.participant) {
+     const content = message.message ?? {};
+     const text = content.conversation
+      ?? content.extendedTextMessage?.text
+      ?? content.imageMessage?.caption
+      ?? content.videoMessage?.caption
+      ?? content.documentMessage?.caption
+      ?? '';
+     const links = (text.match(/https?:\\/\\/[^\\s<>()]+|www\\.[^\\s<>()]+/gi) ?? []).length;
+     const mediaType = content.imageMessage ? 'photos'
+      : content.videoMessage ? (content.videoMessage.gifPlayback ? 'gifs' : 'videos')
+      : content.stickerMessage ? 'stickers'
+      : null;
+     try {
+      await recordGroupMessage({
+       groupJid: remoteJid,
+       senderJid: message.key.participant,
+       links,
+       mediaType,
+       timestamp: Number(message.messageTimestamp) || Math.floor(Date.now() / 1000),
+      });
+     } catch (error) {
+      console.error('[message-counter] Não foi possível registrar a mensagem:', error?.message ?? error);
+     }
     }
 
     await logIncomingMessage(sock, message);
