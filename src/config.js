@@ -1,4 +1,8 @@
 import 'dotenv/config';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const ownerNumber = (process.env.OWNER_NUMBER ?? '').replace(/\D/g, '');
 
@@ -6,7 +10,7 @@ export const config = {
   name: process.env.BOT_NAME?.trim() || 'Nyx Bot',
   prefix: process.env.BOT_PREFIX?.trim() || '!',
   ownerNumber,
-  sessionDir: 'sessions',
+  sessionDir: resolve(projectRoot, 'sessions'),
   pairingCode: process.env.PAIRING_CODE !== 'false',
 };
 
