@@ -195,9 +195,7 @@ async function startBot() {
      ?? message.message.videoMessage?.caption;
     const ownerCommand = Boolean(message.key.fromMe && text?.startsWith(config.prefix));
     // WhatsApp may report messages sent by the linked account as "append".
-    if (type !== 'notify' && !(type === 'append' && ownerCommand)) continue;
-    // Ignore the linked account's ordinary outgoing messages to prevent loops.
-    if (message.key.fromMe && !ownerCommand) continue;
+    if (type !== 'notify' && !(type === 'append' && message.key.fromMe)) continue;
 
     // Persistently ignore the same WhatsApp message if Baileys replays it.
     const isNewMessage = await claimProcessedMessage(message.key.remoteJid, message.key.id);
@@ -207,7 +205,7 @@ async function startBot() {
     }
 
     const remoteJid = message.key.remoteJid ?? '';
-    if (remoteJid.endsWith('@g.us') && !message.key.fromMe && message.key.participant) {
+    if (remoteJid.endsWith('@g.us') && (message.key.participant || message.key.fromMe)) {
      const content = message.message ?? {};
      const text = content.conversation
       ?? content.extendedTextMessage?.text
@@ -220,10 +218,11 @@ async function startBot() {
       : content.videoMessage ? (content.videoMessage.gifPlayback ? 'gifs' : 'videos')
       : content.stickerMessage ? 'stickers'
       : null;
+     const senderJid = message.key.participant ?? (message.key.fromMe ? `${config.ownerNumber}@s.whatsapp.net` : '');
      try {
       await recordGroupMessage({
        groupJid: remoteJid,
-       senderJid: message.key.participant,
+       senderJid,
        links,
        mediaType,
        timestamp: Number(message.messageTimestamp) || Math.floor(Date.now() / 1000),
@@ -232,6 +231,9 @@ async function startBot() {
       console.error('[message-counter] Não foi possível registrar a mensagem:', error?.message ?? error);
      }
     }
+
+    // Do not pass the linked account's outgoing messages to command/AI handlers.
+    if (message.key.fromMe && !ownerCommand) continue;
 
     await logIncomingMessage(sock, message);
     await handleGroupMessage(sock, message);
