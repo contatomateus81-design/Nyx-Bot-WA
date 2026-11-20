@@ -51,8 +51,6 @@ nano .env
 | `BOT_NAME` | Nome exibido para o bot. O padrão é `Nyx Bot`. |
 | `GROQ_API_KEY` | Chave da API Groq. **Recomendado para usar a IA automática da Nyx.** |
 | `GROQ_MODEL` | Modelo usado pela IA da Groq. Recomendado: `qwen/qwen3.8-27b`. |
-| `GEMINI_API_KEY` | Chave da API Gemini, caso utilize a integração correspondente. Deixe vazia se não usar. |
-| `GEMINI_MODEL` | Modelo Gemini configurado para a integração, se utilizada. |
 
 ### API recomendada: Groq
 
