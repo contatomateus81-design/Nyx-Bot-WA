@@ -121,7 +121,7 @@ O prefixo padrão é `!`. Para personalizá-lo, altere `BOT_PREFIX` no arquivo `
 - **Não envie o arquivo `.env`, a pasta `sessions/` ou credenciais para o GitHub.**
 - Não compartilhe códigos de pareamento, chaves de API ou arquivos de sessão.
 - Se apagar a pasta do projeto, faça uma cópia segura do `.env` e da sessão antes. O GitHub não guarda esses arquivos privados.
-- Caso enfrente problemas com a reativação do bot, é recomenddo que desvincule o bot do whatsapp, abra a pasta do projeto, e remova a pasta `sessions` utilizando `rm -rf sessions`. Feito isso, basta iniciar o bot novamente `npm start` e espelhar novamente.
+- Caso enfrente problemas com a reativação do bot, é recomendado que desvincule o bot do whatsapp, abra a pasta do projeto, e remova a pasta `sessions` utilizando `rm -rf sessions`. Feito isso, basta iniciar o bot novamente `npm start`. Obs: remover a pasta `sessions` irá apagar a sessão vinculada ao WhatsApp, então ao reiniciar você precisará espelhar novamente.
 
 ## Verificação
 
