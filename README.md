@@ -49,14 +49,39 @@ nano .env
 | `OWNER_NUMBER` | Seu número de WhatsApp com código do país e DDD, somente dígitos. No Brasil: `55 + DDD + número`. |
 | `BOT_PREFIX` | Prefixo dos comandos. O padrão é `!`. |
 | `BOT_NAME` | Nome exibido para o bot. O padrão é `Nyx Bot`. |
+| `GROQ_API_KEY` | Chave da API Groq. **Recomendado para usar a IA automática da Nyx.** |
+| `GROQ_MODEL` | Modelo usado pela IA da Groq. Recomendado: `qwen/qwen3.8-27b`. |
 | `GEMINI_API_KEY` | Chave da API Gemini, caso utilize a integração correspondente. Deixe vazia se não usar. |
 | `GEMINI_MODEL` | Modelo Gemini configurado para a integração, se utilizada. |
 
-Exemplo de número fictício: `5554991234567`. Substitua pelo seu número real; não inclua `+`, espaços ou traços.
+### API recomendada: Groq
 
-4. Salve no nano com `Ctrl + O`, confirme com Enter e saia com `Ctrl + X`.
+A opção recomendada é utilizar a API da **Groq**. Você pode criar sua chave gratuitamente ou consultar as opções disponíveis diretamente no painel oficial:
 
-5. Valide a sintaxe e inicie o bot:
+**[https://console.groq.com/keys](https://console.groq.com/keys)**
+
+Depois de criar a chave, coloque-a em `GROQ_API_KEY` no seu arquivo `.env`. Não compartilhe essa chave e não a publique no GitHub.
+
+Para o modelo, recomendamos:
+
+```env
+GROQ_MODEL=qwen/qwen3.8-27b
+```
+
+Esse é o modelo utilizado pelo próprio dono e criador do Nyx-Bot-WA, Yato, e foi testado com sucesso na configuração dele. Por isso, é a recomendação principal do projeto. Você também pode trocar o modelo por outro compatível com a API da Groq.
+
+Exemplo de configuração:
+
+```env
+GROQ_API_KEY=sua_chave_da_groq
+GROQ_MODEL=qwen/qwen3.8-27b
+```
+
+4. Exemplo de número fictício: `5554991234567`. Substitua pelo seu número real; não inclua `+`, espaços ou traços.
+
+5. Salve no nano com `Ctrl + O`, confirme com Enter e saia com `Ctrl + X`.
+
+6. Valide a sintaxe e inicie o bot:
 
 ```bash
 npm run check
