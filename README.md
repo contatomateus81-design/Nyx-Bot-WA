@@ -101,6 +101,28 @@ npm start
 
 Se houver alterações locais que impeçam o `git pull`, faça backup do que deseja preservar antes de descartar ou substituir arquivos.
 
+## Download de áudio com yt-dlp
+
+O comando `play` utiliza o **yt-dlp** para pesquisar e baixar o áudio solicitado. O **FFmpeg** é necessário para extrair e converter o áudio para MP3.
+
+No Termux, instale as dependências no mesmo ambiente em que a Nyx Bot será executada:
+
+```bash
+pkg update && pkg upgrade
+pkg install python-yt-dlp ffmpeg
+```
+
+Confira se as ferramentas foram instaladas:
+
+```bash
+yt-dlp --version
+ffmpeg -version
+```
+
+Depois, reinicie a Nyx Bot. O comando usa o prefixo definido em `BOT_PREFIX` no arquivo `.env` (por padrão, `!play`; se seu prefixo for `}`, use ` }play` sem o espaço inicial).
+
+**Importante:** yt-dlp e FFmpeg são programas externos ao Node.js; `npm install` não os instala. Se a Nyx Bot estiver rodando em outro servidor ou dispositivo, instale essas ferramentas nesse ambiente também. Baixe apenas conteúdos que você tenha autorização para obter.
+
 ## Comandos disponíveis
 
 - `!menu`, `!ping`, `!runtime`, `!about`, `!owner`
