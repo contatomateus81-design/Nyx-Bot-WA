@@ -51,8 +51,12 @@ function getMessageText(message) {
 async function logIncomingMessage(sock, message) {
  const remoteJid = message.key.remoteJid ?? '';
  const isGroup = remoteJid.endsWith('@g.us');
- const senderJid = isGroup ? (message.key.participant ?? '') : remoteJid;
- const number = senderJid.split('@')[0].split(':')[0].replace(/\D/g, '') || 'Desconhecido';
+ const senderJid = isGroup
+  ? (message.key.participantAlt ?? message.key.participant ?? '')
+  : (message.key.remoteJidAlt ?? remoteJid);
+ const number = senderJid.endsWith('@s.whatsapp.net')
+  ? senderJid.split('@')[0].split(':')[0].replace(/\D/g, '')
+  : 'Não identificado';
  let chatName = message.pushName || 'Contato privado';
 
  if (isGroup) {
