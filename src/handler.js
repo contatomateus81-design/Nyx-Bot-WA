@@ -49,7 +49,16 @@ export async function handleMessage(sock, message) {
   const senderJid = message.key.fromMe
     ? `${config.ownerNumber}@s.whatsapp.net`
     : (message.key.participant ?? message.key.remoteJid ?? '');
-  const senderNumber = senderJid.split('@')[0].split(':')[0].replace(/\D/g, '');
+  // WhatsApp may expose a LID as the primary JID and the real phone JID as an alternate.
+  // Use only a phone-number JID for registration/access records; never treat a LID as a phone number.
+  const phoneJid = [
+    message.key.participantAlt,
+    message.key.remoteJidAlt,
+    senderJid,
+  ].find((jid) => typeof jid === 'string' && jid.endsWith('@s.whatsapp.net'));
+  const senderNumber = phoneJid
+    ? phoneJid.split('@')[0].split(':')[0].replace(/\D/g, '')
+    : '';
   const isOfficialOwner = Boolean(config.ownerNumber) && senderNumber === config.ownerNumber;
   const delegatedOwners = await getDelegatedOwners();
   const normalizeJid = (jid = '') => String(jid).split(':')[0].trim().toLowerCase();
@@ -72,6 +81,11 @@ export async function handleMessage(sock, message) {
     if (accessStatus !== 'authorized') return;
   }
   if (!isOwner && isRegistrationCommand) {
+    if (!senderNumber) {
+      return sock.sendMessage(message.key.remoteJid, {
+        text: `⚠️ Não consegui identificar seu número do WhatsApp neste evento. Tente enviar ${config.prefix}cadastrar em uma conversa privada com a Nyx.`,
+      }, { quoted: message });
+    }
     const registration = await registerAccessRequest(senderNumber);
     if (registration.status === 'authorized_new') return sock.sendMessage(message.key.remoteJid, { text: '💜 Cadastro realizado! Você já pode usar os comandos da Nyx.' }, { quoted: message });
     if (registration.status === 'authorized') return sock.sendMessage(message.key.remoteJid, { text: 'ℹ️ Seu número já está cadastrado e autorizado.' }, { quoted: message });
