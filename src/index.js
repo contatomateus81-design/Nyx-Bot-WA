@@ -90,7 +90,7 @@ async function logIncomingMessage(sock, message) {
  }).format(date);
 
  console.log('\n' + (mediaType ? '📎 *Mídia anexada: ' + mediaType + '*\n' : '') +
-  '> Nome/Grupo: ' + chatName + '\n> Número: +' + number + '\n> Data: ' + datePart + '\n> Hora: ' + timePart + '\n> Mensagem: ' + (text || '(sem texto)') + '\n');
+  '> Nome/Grupo: ' + chatName + '\n> Número: ' + (number === 'Não identificado' ? number : '+' + number) + '\n> Data: ' + datePart + '\n> Hora: ' + timePart + '\n> Mensagem: ' + (text || '(sem texto)') + '\n');
 }
 
 async function startBot() {
