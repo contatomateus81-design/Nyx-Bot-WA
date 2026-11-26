@@ -6,7 +6,8 @@ function targetNumber(args) {
   return String(args[0] ?? '').replace(/\D/g, '');
 }
 function validNumber(number) {
-  return number.length >= 10 && number.length <= 15;
+  // E.164 international phone numbers contain up to 15 digits.
+  return number.length >= 7 && number.length <= 15;
 }
 function usage(command, ctx) {
   return ctx.reply(`Uso: ${config.prefix}${command} número com DDI. Ex.: ${config.prefix}${command} 5511999999999`);
