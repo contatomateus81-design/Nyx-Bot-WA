@@ -119,7 +119,7 @@ yt-dlp --version
 ffmpeg -version
 ```
 
-Depois, reinicie a Nyx Bot. O comando usa o prefixo definido em `BOT_PREFIX` no arquivo `.env` (por padrão, `!play`; se seu prefixo for `}`, use ` }play` sem o espaço inicial).
+Depois, reinicie a Nyx Bot. O comando usa o prefixo definido em `BOT_PREFIX` no arquivo `.env` (por padrão, `!play`; se seu prefixo for `}`, use `}play`).
 
 **Importante:** yt-dlp e FFmpeg são programas externos ao Node.js; `npm install` não os instala. Se a Nyx Bot estiver rodando em outro servidor ou dispositivo, instale essas ferramentas nesse ambiente também. Baixe apenas conteúdos que você tenha autorização para obter.
 
