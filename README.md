@@ -127,7 +127,7 @@ Depois, reinicie a Nyx Bot. O comando usa o prefixo definido em `BOT_PREFIX` no 
 
 - `!menu`, `!ping`, `!runtime`, `!about`, `!owner`
 - `!choose opção A | opção B`, `!8ball pergunta`
-- `!groupinfo`, `!tagall` (admin)
+- `!groupinfo`, `!tagall`, `!addai` (admin; adiciona a Meta AI ao grupo)
 - `!kick`, `!promote`, `!demote` (admin)
 - `!link`, `!revoke`, `!subject`, `!desc` (admin)
 - `!closegroup`, `!opengroup`, `!welcome on/off`, `!antilink on/off` (admin)
