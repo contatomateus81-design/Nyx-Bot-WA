@@ -64,6 +64,7 @@ const COMMAND_INFO = {
   escolher: { description: 'Escolher aleatoriamente uma opção entre as opções informadas.', usage: 'escolher opção 1 | opção 2' },
   bola8: { description: 'Responder a uma pergunta com uma resposta aleatória.', usage: 'bola8 sua pergunta' },
   infogrupo: { description: 'Mostrar informações básicas do grupo.' },
+  addai: { description: 'Adicionar a Meta AI ao grupo (administradores).', usage: 'addai' },
   totag: { description: 'Marcar todos os participantes do grupo.', usage: 'totag [mensagem]' },
   remover: { description: 'Remover um participante do grupo.', usage: 'remover @pessoa' },
   promover: { description: 'Promover um participante a administrador.', usage: 'promover @pessoa' },
