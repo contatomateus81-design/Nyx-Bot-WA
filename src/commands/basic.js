@@ -55,6 +55,7 @@ const COMMAND_INFO = {
   menuadm: { description: 'Mostrar os comandos de administração de grupos.' },
   menudono: { description: 'Mostrar os comandos exclusivos do dono.' },
   info: { description: 'Mostrar a descrição, o modo de uso e os aliases de um comando.', usage: 'info nome_do_comando' },
+  getcmd: { description: 'Enviar o código-fonte completo de um comando (uso exclusivo do dono).', usage: 'getcmd nome_do_comando' },
   nyx: { description: 'Conversar com a inteligência artificial da Nyx usando a API da Groq.', usage: 'nyx sua mensagem' },
   ping: { description: 'Verificar se a Nyx está respondendo.' },
   dono: { description: 'Mostrar o contato do criador oficial do bot.' },
