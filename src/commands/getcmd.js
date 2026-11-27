@@ -16,7 +16,7 @@ function escapeRegExp(value) {
 async function findCommandSource(commandName) {
   const escapedName = escapeRegExp(commandName);
   const declaration = new RegExp(
-    'registerCommand\\s*\\(\\s*\\{\\s*name\\s*:\\s*([\\'"])' + escapedName + '\\1'
+    "registerCommand\\s*\\(\\s*\\{\\s*name\\s*:\\s*(['\"])"+ escapedName + "\\1"
   );
 
   for (const directory of [commandsDir, customCommandsDir]) {
