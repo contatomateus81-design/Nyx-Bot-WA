@@ -53,7 +53,6 @@ registerCommand({
   role: 'dono',
   async execute(ctx) {
     if (!ctx.isOfficialOwner) return ctx.reply('🔒 Este comando é exclusivo do proprietário oficial.');
-    if (ctx.isGroup) return ctx.reply('ℹ️ Para proteger o código-fonte, use este comando em uma conversa privada com a Nyx.');
 
     const requestedName = String(ctx.args[0] ?? '').trim();
     if (!requestedName) {
