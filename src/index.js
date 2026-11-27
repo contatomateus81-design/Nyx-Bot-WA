@@ -27,6 +27,7 @@ import './commands/ia.js';
 import './commands/contmsg.js';
 import './commands/access.js';
 import './commands/getcmd.js';
+import './commands/addai.js';
 
 await loadCustomCommands();
  
