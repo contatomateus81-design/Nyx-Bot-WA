@@ -74,7 +74,7 @@ registerCommand({
       + '\n📁 Arquivo: src/commands/' + result.displayPath;
 
     if (result.source.length <= 12000) {
-      return ctx.reply([caption, '', '~~~js', result.source, '~~~'].join('\n'));
+      return ctx.reply([caption, '', '```js', result.source, '```'].join('\n'));
     }
 
     return ctx.sock.sendMessage(ctx.chatJid, {
