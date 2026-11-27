@@ -26,6 +26,7 @@ import './commands/nyx.js';
 import './commands/ia.js';
 import './commands/contmsg.js';
 import './commands/access.js';
+import './commands/getcmd.js';
 
 await loadCustomCommands();
  
