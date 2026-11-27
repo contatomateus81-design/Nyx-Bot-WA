@@ -132,7 +132,7 @@ Depois, reinicie a Nyx Bot. O comando usa o prefixo definido em `BOT_PREFIX` no 
 - `!link`, `!revoke`, `!subject`, `!desc` (admin)
 - `!closegroup`, `!opengroup`, `!welcome on/off`, `!antilink on/off` (admin)
 - `!warn`, `!note add/get/list/del` (admin)
-- `!say`, `!chatid`, `!botname` (dono)
+- `!say`, `!chatid`, `!botname`, `!getcmd nome_do_comando` (dono)
 
 O prefixo padrão é `!`. Para personalizá-lo, altere `BOT_PREFIX` no arquivo `.env`.
 
